@@ -9,6 +9,7 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "release:check": "npm run lint && npm run typecheck && npm test && npm run build",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "db:start": "supabase start",

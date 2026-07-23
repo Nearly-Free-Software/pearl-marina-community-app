@@ -30,8 +30,8 @@ For hosted projects, configure:
 
 - Site URL: `https://app.pearlmarina.org`
 - Redirect URL: `https://app.pearlmarina.org/auth/confirm`
-- Preview redirect URLs only for trusted Vercel previews
-- Magic-link template destination: `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=magiclink`
+- Staged deployment redirect URL: `https://*-pearl-marina.vercel.app/**`
+- Magic-link template destination: `{{ .RedirectTo }}?token_hash={{ .TokenHash }}&type=magiclink`
 - Invitation template destination: `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=invite`
 - A custom SMTP provider before the wider community pilot
 
@@ -59,29 +59,38 @@ These operations require a trusted dashboard/database administrator and are inte
 
 ## Supabase environments and migrations
 
-Use separate hosted development and production projects. Link deliberately and verify the project reference before pushing migrations:
+Use local Supabase during development and one hosted Supabase project for staged and live production deployments. Link deliberately and verify the production project reference before pushing migrations:
 
 ```bash
 supabase login
-supabase link --project-ref <development-project-ref>
+supabase link --project-ref <production-project-ref>
 supabase migration list
 supabase db push --dry-run
 supabase db push
 supabase gen types typescript --linked > src/types/database.generated.ts
 ```
 
-Repeat linking and migration review for production only after development verification. Schema changes begin with `supabase migration new <description>`. Do not edit production schema manually except for the documented temporary role-management procedure.
+Schema changes begin with `supabase migration new <description>` and are verified with local Supabase before being pushed to the hosted project. Do not edit production schema manually except for the documented temporary role-management procedure.
 
 ## Vercel deployment
 
 1. Install and authenticate the CLI: `npm install --global vercel` and `vercel login`.
 2. Import `Nearly-Free-Software/pearl-marina-community-app` in Vercel or run `vercel link`.
-3. Add all `.env.example` keys separately to Development, Preview, and Production.
-4. Pull the development environment with `vercel env pull .env.local` and compare key names, never values.
-5. Confirm `npm run build`, then deploy from `main`.
-6. Add `app.pearlmarina.org` to the Vercel project and create only the DNS record Vercel requests. Do not change the apex or `www` records serving WordPress.
+3. Add the hosted Supabase URL, publishable key, and production site URL to the Vercel **Production** environment.
+4. Set `main` as the Production Branch.
+5. Under **Settings → Environments → Production → Branch Tracking**, disable **Auto-assign Custom Production Domains**.
+6. Add `app.pearlmarina.org` and create only the DNS record Vercel requests. Do not change the apex or `www` records serving WordPress.
 
-Preview deployments must use the hosted development Supabase project, not production.
+This project uses staged production deployments rather than a persistent preview environment:
+
+1. Work locally against local Supabase.
+2. Run `npm run release:check`.
+3. Push the tested commit to `main`.
+4. Vercel creates a production-target build at a temporary `.vercel.app` URL without changing the live custom domain.
+5. Verify that exact staged deployment on desktop and mobile.
+6. Promote the staged deployment manually. Promotion assigns the custom domain without rebuilding.
+
+Both staged and promoted builds use the same Production environment variables and hosted Supabase project.
 
 ## Verification
 
@@ -90,6 +99,7 @@ npm run lint
 npm run typecheck
 npm test
 npm run build
+npm run release:check
 npm run test:e2e
 ```
 
@@ -102,6 +112,6 @@ With local Supabase running, also run `npm run db:test` and manually verify an i
 - **User can authenticate but cannot reach the dashboard:** confirm a profile was created and `access_status` is `active`.
 - **Profile update affects zero rows:** RLS requires the user to have an active readable profile; role and status are intentionally not browser-updatable.
 - **Email never arrives:** Supabase's development mail service is rate-limited. Check Auth logs and configure custom SMTP for real users.
-- **Vercel build differs from local:** compare environment key names across Development, Preview, and Production and ensure preview uses the development Supabase project.
+- **Vercel build differs from local:** verify the hosted values exist in the Production environment and that the staged build came from the expected `main` commit.
 
 This repository intentionally has no license until the community chooses one.
