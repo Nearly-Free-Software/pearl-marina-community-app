@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 const migration = readFileSync(join(process.cwd(), "supabase/migrations/20260721122153_create_profiles.sql"), "utf8");
 const visitorMigration = readFileSync(join(process.cwd(), "supabase/migrations/20260724123643_create_visitor_passes.sql"), "utf8");
 const requestKeyMigration = readFileSync(join(process.cwd(), "supabase/migrations/20260724131734_add_visitor_request_keys.sql"), "utf8");
+const homeownerMigration = readFileSync(join(process.cwd(), "supabase/migrations/20260724142031_homeowner_applications.sql"), "utf8");
 
 describe("profiles migration security", () => {
   it("enables RLS and limits browser updates to display_name", () => {
@@ -21,6 +22,28 @@ describe("profiles migration security", () => {
   it("keeps the auth trigger function out of exposed schemas", () => {
     expect(migration).toContain("function private.create_profile_for_new_user");
     expect(migration).toContain("revoke all on function private.create_profile_for_new_user()");
+  });
+});
+
+describe("homeowner application migration security", () => {
+  it("enables RLS without exposing applicant data anonymously", () => {
+    expect(homeownerMigration).toContain("alter table public.homeowner_applications enable row level security");
+    expect(homeownerMigration).toContain("revoke all on table public.homeowner_applications from anon, authenticated");
+    expect(homeownerMigration).not.toContain("grant select on table public.homeowner_applications to anon");
+  });
+
+  it("limits reads to active community managers", () => {
+    expect(homeownerMigration).toContain("profiles.role::text = 'community_manager'");
+    expect(homeownerMigration).toContain("profiles.access_status = 'active'");
+  });
+
+  it("prevents duplicate open applications while allowing rejected applicants to reapply", () => {
+    expect(homeownerMigration).toContain("where status in ('pending', 'approved')");
+  });
+
+  it("keeps browser clients from assigning roles or approving applications", () => {
+    expect(homeownerMigration).not.toContain("grant update on table public.homeowner_applications");
+    expect(homeownerMigration).not.toContain("grant insert on table public.homeowner_applications");
   });
 });
 

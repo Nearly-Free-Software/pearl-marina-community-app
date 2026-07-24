@@ -5,6 +5,7 @@ describe("authentication helpers", () => {
   it("provides a label for every community role", () => {
     expect(roleLabels).toEqual({
       admin: "Administrator",
+      community_manager: "Community manager",
       homeowner: "Homeowner",
       resident: "Resident",
       service_provider: "Service provider",

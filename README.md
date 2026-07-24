@@ -1,6 +1,6 @@
 # Pearl Marina Community App
 
-Mobile-first, invitation-only community portal for Pearl Marina homeowners, residents, and service providers.
+Mobile-first community portal for Pearl Marina homeowners, residents, community managers, and service providers.
 
 ## Stack
 
@@ -20,11 +20,13 @@ Requirements: Node.js 24+, npm, Docker Desktop, and the Supabase CLI.
 5. Apply migrations with `npm run db:reset`.
 6. Start Next.js with `npm run dev`.
 
-The app deliberately refuses to start authenticated routes when required Supabase variables are missing. Never place a secret or `service_role` key in a `NEXT_PUBLIC_` variable.
+The app deliberately refuses to start authenticated routes when required Supabase variables are missing. `SUPABASE_SECRET_KEY` is also required for homeowner applications and manager approval. Never place a secret or `service_role` key in a `NEXT_PUBLIC_` variable.
 
 ## Authentication
 
-Public sign-up is disabled. An administrator invites approved users from **Supabase Dashboard → Authentication → Users → Invite user**. Existing invited users may request a magic sign-in link at `/login`.
+Unrestricted Supabase Auth sign-up is disabled. Homeowners apply at `/signup`; submitting the form creates a pending application but no Auth account. A community manager verifies ownership and approves the application, which automatically registers the homeowner and sends their first passwordless sign-in email.
+
+Administrators may continue inviting residents and service providers from **Supabase Dashboard → Authentication → Users → Invite user**. Existing and approved users request magic sign-in links at `/login`.
 
 For hosted projects, configure:
 
@@ -34,16 +36,17 @@ For hosted projects, configure:
 - Magic-link template destination: `{{ .RedirectTo }}?token_hash={{ .TokenHash }}&type=magiclink`
 - Invitation template destination: `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=invite`
 - A custom SMTP provider before the wider community pilot
+- `SUPABASE_SECRET_KEY` as a server-only Vercel variable for application submission and automatic registration
 
 Keep **Allow new users to sign up** disabled in both general Auth and Email provider settings. Invitations through the administrator API/dashboard remain the account-creation path.
 
 ### Assign a role
 
-New profiles default to `resident`. After inviting a user, an authorized database administrator assigns the approved role in the Supabase SQL editor:
+New manually invited profiles default to `resident`. Approved homeowner applications are assigned automatically. After manually inviting another user, an authorized database administrator assigns the approved role in the Supabase SQL editor:
 
 ```sql
 update public.profiles
-set role = 'homeowner' -- admin | homeowner | resident | service_provider
+set role = 'homeowner' -- admin | community_manager | homeowner | resident | service_provider
 where email = 'person@example.com';
 ```
 
@@ -56,6 +59,20 @@ where email = 'person@example.com';
 ```
 
 These operations require a trusted dashboard/database administrator and are intentionally unavailable to browser clients.
+
+### Establish a community manager
+
+After the person already has an invited account, a trusted database administrator assigns the role:
+
+```sql
+update public.profiles
+set role = 'community_manager'
+where email = 'manager@example.com';
+```
+
+An active community manager can open **Homeowner applications** from the dashboard. They verify ownership outside the app, then choose **Approve and register** or **Reject**. Approval creates or reuses exactly one Auth account, writes the approved property details to the homeowner profile, and sends a first sign-in email. If email delivery fails, the approved record remains available with a **Retry email** action.
+
+Rejected applicants may submit a corrected application later. Rejection reasons are internal and visible only in the protected review data.
 
 ## Guest passes
 
@@ -94,7 +111,7 @@ Schema changes begin with `supabase migration new <description>` and are verifie
 
 1. Install and authenticate the CLI: `npm install --global vercel` and `vercel login`.
 2. Import `Nearly-Free-Software/pearl-marina-community-app` in Vercel or run `vercel link`.
-3. Add the hosted Supabase URL, publishable key, and production site URL to the Vercel **Production** environment.
+3. Add the hosted Supabase URL, publishable key, server-only secret key, and production site URL to the Vercel **Production** environment.
 4. Set `main` as the Production Branch.
 5. Under **Settings → Environments → Production → Branch Tracking**, disable **Auto-assign Custom Production Domains**.
 6. Add `app.pearlmarina.org` and create only the DNS record Vercel requests. Do not change the apex or `www` records serving WordPress.
@@ -132,6 +149,8 @@ For guest access, verify pass creation, native sharing or copy fallback, scannin
 - **User can authenticate but cannot reach the dashboard:** confirm a profile was created and `access_status` is `active`.
 - **Profile update affects zero rows:** RLS requires the user to have an active readable profile; role and status are intentionally not browser-updatable.
 - **Email never arrives:** Supabase's development mail service is rate-limited. Check Auth logs and configure custom SMTP for real users.
+- **Homeowner application fails immediately:** confirm `SUPABASE_SECRET_KEY` is configured server-side and is not prefixed with `NEXT_PUBLIC_`.
+- **Approved homeowner email fails:** check Supabase Auth/SMTP logs, then use **Retry email** in the manager review history.
 - **Vercel build differs from local:** verify the hosted values exist in the Production environment and that the staged build came from the expected `main` commit.
 
 This repository intentionally has no license until the community chooses one.

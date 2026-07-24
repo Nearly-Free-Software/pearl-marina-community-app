@@ -29,7 +29,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
           <CardHeader>
             <div className="mb-3 grid size-11 place-items-center rounded-full bg-secondary text-secondary-foreground"><KeyRound className="size-5" /></div>
             <CardTitle>Welcome back</CardTitle>
-            <CardDescription>Use the email address invited by your community administrator. We will send you a secure sign-in link.</CardDescription>
+            <CardDescription>Use your approved community email address. We will send you a secure sign-in link.</CardDescription>
           </CardHeader>
           <CardContent>
             {params.sent ? (
@@ -41,7 +41,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
                 <PendingButton className="w-full" pendingLabel="Sending sign-in link…">Email me a sign-in link</PendingButton>
               </form>
             )}
-            <p className="mt-5 text-center text-xs leading-5 text-muted-foreground">Access is invitation-only. Contact the community administrator if you need an account.</p>
+            <p className="mt-5 text-center text-sm leading-6 text-muted-foreground">Homeowner without an account? <Link href="/signup" className="font-medium text-primary underline-offset-4 hover:underline">Apply for access</Link></p>
           </CardContent>
         </Card>
       </div>

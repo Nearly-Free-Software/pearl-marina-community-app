@@ -3,7 +3,13 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import type { Profile } from "@/types/database";
 
-export const roleLabels = { admin: "Administrator", homeowner: "Homeowner", resident: "Resident", service_provider: "Service provider" } as const;
+export const roleLabels = {
+  admin: "Administrator",
+  community_manager: "Community manager",
+  homeowner: "Homeowner",
+  resident: "Resident",
+  service_provider: "Service provider",
+} as const;
 
 export async function getAuthenticatedProfile(): Promise<Profile> {
   const supabase = await createClient();

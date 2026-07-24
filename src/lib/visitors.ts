@@ -4,7 +4,7 @@ import type { CommunityRole, VisitorPassVerification } from "@/types/database";
 
 export type DurationChoice = "today" | "24_hours" | "custom";
 
-export const inviterRoles: CommunityRole[] = ["admin", "homeowner", "resident"];
+export const inviterRoles: CommunityRole[] = ["admin", "community_manager", "homeowner", "resident"];
 export const phonePattern = /^\+[1-9]\d{7,14}$/;
 
 export function canInviteGuests(role: CommunityRole) {
