@@ -46,3 +46,8 @@
 * { border-color: var(--border); }
 body { margin: 0; }
 ::selection { background: #b9ddd2; color: #0b332a; }
+
+@keyframes route-progress {
+  0% { transform: translateX(-110%); }
+  100% { transform: translateX(410%); }
+}

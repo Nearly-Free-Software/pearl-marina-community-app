@@ -4,14 +4,16 @@ import { ArrowLeft, Plus, QrCode } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { LinkStatus } from "@/components/ui/link-status";
 import { getAuthenticatedProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { canInviteGuests, formatKampalaDateTime, passDisplayStatus } from "@/lib/visitors";
 
 export const dynamic = "force-dynamic";
 
-export default async function VisitorsPage() {
+export default async function VisitorsPage({ searchParams }: { searchParams: Promise<{ duplicate?: string }> }) {
   const profile = await getAuthenticatedProfile();
+  const query = await searchParams;
   if (!canInviteGuests(profile.role)) {
     return <main className="mx-auto max-w-xl px-5 py-10">Your account cannot create visitor passes.</main>;
   }
@@ -30,8 +32,9 @@ export default async function VisitorsPage() {
       </Link>
       <div className="mb-7 flex items-start justify-between gap-4">
         <div><h1 className="text-3xl font-semibold tracking-tight">Guest passes</h1><p className="mt-2 text-sm text-muted-foreground">Create and manage access for your visitors.</p></div>
-        <Button asChild><Link href="/visitors/new"><Plus className="size-4" /> Invite</Link></Button>
+        <Button asChild><Link href="/visitors/new"><Plus className="size-4" /> Invite <LinkStatus label="Opening guest form" /></Link></Button>
       </div>
+      {query.duplicate ? <p className="mb-4 rounded-lg bg-amber-50 p-3 text-sm text-amber-900" role="status">That guest pass was already created. Open it below to view or replace its QR code.</p> : null}
       {passes.length ? (
         <div className="space-y-3">
           {passes.map((pass) => {
@@ -46,6 +49,7 @@ export default async function VisitorsPage() {
                       <p className="mt-1 text-xs text-muted-foreground">Until {formatKampalaDateTime(pass.valid_until)}</p>
                     </div>
                     <Badge className={status === "Active" ? "bg-primary text-primary-foreground" : ""}>{status}</Badge>
+                    <LinkStatus label={`Opening ${pass.guest_name}'s pass`} />
                   </CardContent>
                 </Card>
               </Link>

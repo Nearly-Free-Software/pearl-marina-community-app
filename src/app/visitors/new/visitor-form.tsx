@@ -5,16 +5,18 @@ import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PendingButton } from "@/components/ui/pending-button";
 import { createVisitorPass, type VisitorActionState } from "../actions";
 
 const initialState: VisitorActionState = {};
 
-export function VisitorForm() {
+export function VisitorForm({ requestKey }: { requestKey: string }) {
   const [state, action, pending] = useActionState(createVisitorPass, initialState);
   const [duration, setDuration] = useState("today");
 
   return (
     <form action={action} className="space-y-6">
+      <input type="hidden" name="request_key" value={requestKey} />
       <div className="space-y-2">
         <label className="text-sm font-medium" htmlFor="guest_name">Guest name</label>
         <Input id="guest_name" name="guest_name" autoComplete="name" maxLength={100} required />
@@ -75,7 +77,7 @@ export function VisitorForm() {
       ) : null}
       <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
         <Button asChild variant="outline"><Link href="/visitors">Cancel</Link></Button>
-        <Button type="submit" disabled={pending}>{pending ? "Creating pass…" : "Create visitor pass"}</Button>
+        <PendingButton pendingLabel="Creating pass…" disabled={pending}>Create visitor pass</PendingButton>
       </div>
     </form>
   );

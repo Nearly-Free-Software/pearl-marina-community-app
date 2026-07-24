@@ -4,7 +4,8 @@ import { notFound } from "next/navigation";
 import { headers } from "next/headers";
 
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { PendingButton } from "@/components/ui/pending-button";
+import { ConfirmForm } from "@/components/ui/confirm-form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getAuthenticatedProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
@@ -60,13 +61,15 @@ export default async function VisitorPassPage({
             <div className="rounded-lg border border-dashed p-5 text-center">
               <p className="font-medium">Generate a replacement QR code</p>
               <p className="mt-2 text-sm leading-6 text-muted-foreground">For security, the original QR token is not stored. Replacing it will immediately invalidate the previous code.</p>
-              <form action={replaceAction} className="mt-4"><Button type="submit"><RotateCcw className="size-4" /> Replace QR code</Button></form>
+              <form action={replaceAction} className="mt-4"><PendingButton pendingLabel="Generating QR…"><RotateCcw className="size-4" /> Replace QR code</PendingButton></form>
             </div>
           ) : (
             <p className="rounded-lg bg-muted p-4 text-center text-sm text-muted-foreground">This pass no longer has an active QR code.</p>
           )}
           {canUseQr ? (
-            <form action={revokeAction}><Button type="submit" variant="outline" className="w-full text-destructive">Revoke visitor pass</Button></form>
+            <ConfirmForm action={revokeAction} message={`Revoke ${pass.guest_name}'s visitor pass? The QR code will stop working immediately.`}>
+              <PendingButton pendingLabel="Revoking pass…" variant="outline" className="w-full text-destructive">Revoke visitor pass</PendingButton>
+            </ConfirmForm>
           ) : null}
         </CardContent>
       </Card>

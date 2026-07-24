@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 
 const migration = readFileSync(join(process.cwd(), "supabase/migrations/20260721122153_create_profiles.sql"), "utf8");
 const visitorMigration = readFileSync(join(process.cwd(), "supabase/migrations/20260724123643_create_visitor_passes.sql"), "utf8");
+const requestKeyMigration = readFileSync(join(process.cwd(), "supabase/migrations/20260724131734_add_visitor_request_keys.sql"), "utf8");
 
 describe("profiles migration security", () => {
   it("enables RLS and limits browser updates to display_name", () => {
@@ -20,6 +21,18 @@ describe("profiles migration security", () => {
   it("keeps the auth trigger function out of exposed schemas", () => {
     expect(migration).toContain("function private.create_profile_for_new_user");
     expect(migration).toContain("revoke all on function private.create_profile_for_new_user()");
+  });
+});
+
+describe("visitor request idempotency migration", () => {
+  it("adds a required per-resident duplicate-prevention key", () => {
+    expect(requestKeyMigration).toContain("alter column request_key set not null");
+    expect(requestKeyMigration).toContain("unique (resident_id, request_key)");
+  });
+
+  it("does not expose or broaden browser permissions", () => {
+    expect(requestKeyMigration).not.toContain("grant ");
+    expect(requestKeyMigration).not.toContain("policy ");
   });
 });
 

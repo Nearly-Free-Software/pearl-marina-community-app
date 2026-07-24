@@ -2,9 +2,9 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { CheckCircle2, KeyRound } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { PendingButton } from "@/components/ui/pending-button";
 import { authErrorMessage } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { requestMagicLink } from "./actions";
@@ -38,7 +38,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
               <form action={requestMagicLink} className="space-y-4">
                 <div className="space-y-2"><label htmlFor="email" className="text-sm font-medium">Email address</label><Input id="email" name="email" type="email" autoComplete="email" inputMode="email" placeholder="you@example.com" required /></div>
                 {error && <p className="rounded-lg bg-red-50 p-3 text-sm text-red-800" role="alert">{error}</p>}
-                <Button className="w-full" type="submit">Email me a sign-in link</Button>
+                <PendingButton className="w-full" pendingLabel="Sending sign-in link…">Email me a sign-in link</PendingButton>
               </form>
             )}
             <p className="mt-5 text-center text-xs leading-5 text-muted-foreground">Access is invitation-only. Contact the community administrator if you need an account.</p>

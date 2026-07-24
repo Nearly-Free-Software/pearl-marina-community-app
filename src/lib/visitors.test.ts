@@ -63,4 +63,8 @@ describe("visitor pass helpers", () => {
     expect(verificationCopy.invalid.description).not.toContain("guest");
     expect(verificationCopy.valid.label).toBe("Valid");
   });
+
+  it("keeps duplicate request identifiers out of public verification copy", () => {
+    expect(JSON.stringify(verificationCopy)).not.toContain("request_key");
+  });
 });

@@ -25,9 +25,13 @@ export async function createVisitorPass(
 
   const guestName = String(formData.get("guest_name") ?? "").trim();
   const guestPhone = String(formData.get("guest_phone") ?? "").replace(/[\s()-]/g, "");
+  const requestKey = String(formData.get("request_key") ?? "");
   const duration = String(formData.get("duration") ?? "") as DurationChoice;
 
   if (!guestName || guestName.length > 100) return { error: "Enter the guest’s name." };
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(requestKey)) {
+    return { error: "This form has expired. Refresh the page and try again." };
+  }
   if (!phonePattern.test(guestPhone)) {
     return { error: "Enter the phone number with its country code, for example +256700000000." };
   }
@@ -55,6 +59,7 @@ export async function createVisitorPass(
       resident_id: profile.id,
       guest_name: guestName,
       guest_phone: guestPhone,
+      request_key: requestKey,
       valid_from: window.validFrom.toISOString(),
       valid_until: window.validUntil.toISOString(),
       token_hash: hashPassToken(token),
@@ -63,6 +68,7 @@ export async function createVisitorPass(
     .select("id")
     .single();
 
+  if (error?.code === "23505") redirect("/visitors?duplicate=1");
   if (error || !data) return { error: "We could not create this pass. Please try again." };
   revalidatePath("/visitors");
   redirect(`/visitors/${data.id}?token=${encodeURIComponent(token)}&created=1`);

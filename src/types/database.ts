@@ -7,6 +7,7 @@ export type VisitorPass = {
   resident_id: string;
   guest_name: string;
   guest_phone: string;
+  request_key: string;
   valid_from: string;
   valid_until: string;
   token_hash: string;

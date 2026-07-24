@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { randomUUID } from "node:crypto";
 import { ArrowLeft } from "lucide-react";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,7 +25,7 @@ export default async function NewVisitorPage() {
           <CardTitle>Invite a guest</CardTitle>
           <CardDescription>Create a time-limited QR pass to share with your visitor.</CardDescription>
         </CardHeader>
-        <CardContent><VisitorForm /></CardContent>
+        <CardContent><VisitorForm requestKey={randomUUID()} /></CardContent>
       </Card>
     </main>
   );
