@@ -1,9 +1,10 @@
 import { expect, test } from "@playwright/test";
 
-test("public shell is usable on mobile and links to sign in", async ({ page }) => {
+test("public shell is usable on mobile and offers signup and sign in", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { name: /one calm place/i })).toBeVisible();
-  await expect(page.getByRole("link", { name: /continue to sign in/i })).toHaveAttribute("href", "/login");
+  await expect(page.getByRole("link", { name: /apply for homeowner access/i })).toHaveAttribute("href", "/signup");
+  await expect(page.getByRole("link", { name: /already have access.*sign in/i })).toHaveAttribute("href", "/login");
 });
 
 test("homeowners can open a complete access application form", async ({ page }) => {
