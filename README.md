@@ -57,6 +57,24 @@ where email = 'person@example.com';
 
 These operations require a trusted dashboard/database administrator and are intentionally unavailable to browser clients.
 
+## Guest passes
+
+Residents, homeowners, and administrators can open **Guest access** from the dashboard, enter a visitor's name and international phone number, and choose access for today, 24 hours, or a custom period. The resulting QR code can be shared through the device share sheet, copied as a link, or downloaded.
+
+Security personnel do not need an account. Any phone camera or QR scanner can open the public `/visit/<token>` page and see the live pass status, guest name, inviting resident, and validity period.
+
+Privacy and security properties:
+
+- The QR contains a 256-bit random bearer token rather than personal information.
+- Only the SHA-256 token hash is stored in Postgres.
+- Guest phone numbers are visible only to the inviting resident through authenticated, owner-scoped access.
+- Unknown codes reveal no personal information.
+- Expired and revoked passes stop revealing names after 24 hours.
+- Verification pages opt out of indexing, previews, caching, and referrer sharing.
+- Replacing a QR immediately invalidates the previous code; revocation is checked live.
+
+Anyone possessing a valid QR can view its limited verification details. Treat it like a temporary access pass and revoke it if it is shared with the wrong person.
+
 ## Supabase environments and migrations
 
 Use local Supabase during development and one hosted Supabase project for staged and live production deployments. Link deliberately and verify the production project reference before pushing migrations:
@@ -104,6 +122,8 @@ npm run test:e2e
 ```
 
 With local Supabase running, also run `npm run db:test` and manually verify an invited-user login, expired-link handling, session refresh, sign-out, and disabled-user rejection.
+
+For guest access, verify pass creation, native sharing or copy fallback, scanning on a second phone, immediate revocation, expiry behavior, and that invalid codes reveal no names or phone numbers.
 
 ## Troubleshooting
 
