@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ConfirmForm } from "@/components/ui/confirm-form";
 import { Input } from "@/components/ui/input";
+import { LinkStatus } from "@/components/ui/link-status";
 import { PendingButton } from "@/components/ui/pending-button";
 import { getAuthenticatedProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
@@ -40,7 +41,7 @@ export default async function ApplicationsPage({
   return (
     <main className="min-h-screen px-5 py-8 sm:px-8">
       <div className="mx-auto max-w-4xl">
-        <Button asChild variant="ghost" className="-ml-3 mb-5"><Link href="/dashboard"><ArrowLeft className="size-4" />Dashboard</Link></Button>
+        <Button asChild variant="ghost" className="-ml-3 mb-5"><Link href="/dashboard"><ArrowLeft className="size-4" />Dashboard <LinkStatus label="Returning to dashboard" /></Link></Button>
         <div className="mb-8"><h1 className="text-3xl font-semibold tracking-tight">Homeowner applications</h1><p className="mt-2 text-muted-foreground">Verify ownership before registering an applicant.</p></div>
         {params.approved ? <p className="mb-5 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-800" role="status">Homeowner registered and sign-in email sent.</p> : null}
         {params.rejected ? <p className="mb-5 rounded-lg bg-secondary p-3 text-sm" role="status">Application rejected.</p> : null}

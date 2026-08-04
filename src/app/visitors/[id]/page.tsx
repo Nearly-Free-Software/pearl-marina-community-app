@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { PendingButton } from "@/components/ui/pending-button";
 import { ConfirmForm } from "@/components/ui/confirm-form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { LinkStatus } from "@/components/ui/link-status";
 import { getAuthenticatedProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { formatKampalaDateTime, passDisplayStatus } from "@/lib/visitors";
@@ -41,7 +42,7 @@ export default async function VisitorPassPage({
   return (
     <main className="mx-auto min-h-screen w-full max-w-xl px-5 py-6 sm:py-10">
       <Link href="/visitors" className="mb-6 inline-flex min-h-11 items-center gap-2 text-sm font-medium text-primary">
-        <ArrowLeft className="size-4" /> Guest passes
+        <ArrowLeft className="size-4" /> Guest passes <LinkStatus label="Returning to guest passes" />
       </Link>
       {query.created ? <p className="mb-4 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-900">Visitor pass created. Share it with your guest now.</p> : null}
       {query.revoked ? <p className="mb-4 rounded-lg bg-amber-50 p-3 text-sm text-amber-900">This visitor pass has been revoked.</p> : null}

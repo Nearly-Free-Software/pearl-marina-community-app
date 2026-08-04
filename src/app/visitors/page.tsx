@@ -28,7 +28,7 @@ export default async function VisitorsPage({ searchParams }: { searchParams: Pro
   return (
     <main className="mx-auto min-h-screen w-full max-w-3xl px-5 py-6 sm:py-10">
       <Link href="/dashboard" className="mb-6 inline-flex min-h-11 items-center gap-2 text-sm font-medium text-primary">
-        <ArrowLeft className="size-4" /> Dashboard
+        <ArrowLeft className="size-4" /> Dashboard <LinkStatus label="Returning to dashboard" />
       </Link>
       <div className="mb-7 flex items-start justify-between gap-4">
         <div><h1 className="text-3xl font-semibold tracking-tight">Guest passes</h1><p className="mt-2 text-sm text-muted-foreground">Create and manage access for your visitors.</p></div>

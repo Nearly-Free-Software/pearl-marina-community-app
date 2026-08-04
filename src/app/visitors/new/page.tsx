@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { ArrowLeft } from "lucide-react";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { LinkStatus } from "@/components/ui/link-status";
 import { getAuthenticatedProfile } from "@/lib/auth";
 import { canInviteGuests } from "@/lib/visitors";
 import { VisitorForm } from "./visitor-form";
@@ -18,7 +19,7 @@ export default async function NewVisitorPage() {
   return (
     <main className="mx-auto min-h-screen w-full max-w-xl px-5 py-6 sm:py-10">
       <Link href="/visitors" className="mb-6 inline-flex min-h-11 items-center gap-2 text-sm font-medium text-primary">
-        <ArrowLeft className="size-4" /> Back to guest passes
+        <ArrowLeft className="size-4" /> Back to guest passes <LinkStatus label="Returning to guest passes" />
       </Link>
       <Card>
         <CardHeader>
