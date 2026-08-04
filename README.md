@@ -20,7 +20,7 @@ Requirements: Node.js 24+, npm, Docker Desktop, and the Supabase CLI.
 5. Apply migrations with `npm run db:reset`.
 6. Start Next.js with `npm run dev`.
 
-The app deliberately refuses to start authenticated routes when required Supabase variables are missing. `SUPABASE_SECRET_KEY` is also required for homeowner applications and manager approval. Never place a secret or `service_role` key in a `NEXT_PUBLIC_` variable.
+The app deliberately refuses to start authenticated routes when required Supabase variables are missing. `SUPABASE_SECRET_KEY` is required for homeowner applications and manager approval. `SUPABASE_SERVICE_ROLE_KEY` is additionally required for server-side Storage operations used by homeowner ID verification. Never place either credential in a `NEXT_PUBLIC_` variable.
 
 ## Authentication
 
@@ -37,6 +37,7 @@ For hosted projects, configure:
 - Invitation template destination: `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=invite`
 - A custom SMTP provider before the wider community pilot
 - `SUPABASE_SECRET_KEY` as a server-only Vercel variable for application submission and automatic registration
+- `SUPABASE_SERVICE_ROLE_KEY` as a server-only, sensitive Vercel variable for Supabase Storage administration
 
 Keep **Allow new users to sign up** disabled in both general Auth and Email provider settings. Invitations through the administrator API/dashboard remain the account-creation path.
 
@@ -175,7 +176,7 @@ For guest access, verify pass creation, native sharing or copy fallback, scannin
 - **User can authenticate but cannot reach the dashboard:** confirm a profile was created and `access_status` is `active`.
 - **Profile update affects zero rows:** RLS requires the user to have an active readable profile; role and status are intentionally not browser-updatable.
 - **Email never arrives:** Supabase's development mail service is rate-limited. Check Auth logs and configure custom SMTP for real users.
-- **Homeowner application fails immediately:** confirm `SUPABASE_SECRET_KEY` is configured server-side and is not prefixed with `NEXT_PUBLIC_`.
+- **Homeowner application fails immediately:** confirm `SUPABASE_SECRET_KEY` and `SUPABASE_SERVICE_ROLE_KEY` are configured server-side and neither is prefixed with `NEXT_PUBLIC_`.
 - **Approved homeowner email fails:** check Supabase Auth/SMTP logs, then use **Retry email** in the manager review history.
 - **ID upload is unavailable:** confirm the feature flag and all three ID-workflow secrets are configured. Leave the flag off if the Google key or privacy approval is missing.
 - **OCR cannot suggest a name:** applicants can enter it manually; the manager queue highlights the failure for closer inspection.

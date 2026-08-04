@@ -7,7 +7,6 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { PendingButton } from "@/components/ui/pending-button";
 import { HOMEOWNER_ID_MAX_BYTES, HOMEOWNER_ID_MAX_DIMENSION, HOMEOWNER_ID_PRIVACY_VERSION } from "@/lib/homeowner-identification";
-import { getSupabaseEnv } from "@/lib/supabase/env";
 import { subCommunities } from "@/lib/homeowner-applications";
 import { submitHomeownerApplication } from "./actions";
 
@@ -29,7 +28,10 @@ async function prepareIdImage(file: File) {
   throw new Error("This image remains too large. Move closer to the ID and try again.");
 }
 
-export function IdSignupForm({ error }: { error?: string }) {
+export function IdSignupForm({ error, supabase: supabaseEnv }: {
+  error?: string;
+  supabase: { url: string; publishableKey: string };
+}) {
   const [email, setEmail] = useState("");
   const [draft, setDraft] = useState<{ id: string; secret: string } | null>(null);
   const [suggestedName, setSuggestedName] = useState<string | null>(null);
@@ -48,8 +50,7 @@ export function IdSignupForm({ error }: { error?: string }) {
       const issue = await fetch("/api/signup/id/draft", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ email: normalizedEmail }) });
       const issued = await issue.json() as { error?: string; draftId?: string; draftSecret?: string; uploadPath?: string; uploadToken?: string };
       if (!issue.ok || !issued.draftId || !issued.draftSecret || !issued.uploadPath || !issued.uploadToken) throw new Error(issued.error || "Upload could not be prepared.");
-      const { url, publishableKey } = getSupabaseEnv();
-      const supabase = createClient(url, publishableKey);
+      const supabase = createClient(supabaseEnv.url, supabaseEnv.publishableKey);
       const { error: storageError } = await supabase.storage.from("homeowner-identification")
         .uploadToSignedUrl(issued.uploadPath, issued.uploadToken, image, { contentType: "image/jpeg", cacheControl: "0" });
       if (storageError) throw new Error("The image could not be uploaded.");
