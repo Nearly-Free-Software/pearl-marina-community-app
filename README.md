@@ -74,6 +74,32 @@ An active community manager can open **Homeowner applications** from the dashboa
 
 Rejected applicants may submit a corrected application later. Rejection reasons are internal and visible only in the protected review data.
 
+### Government ID verification (gated rollout)
+
+The optional homeowner ID workflow is controlled by the server-only `HOMEOWNER_ID_REQUIREMENT_ENABLED` variable. Keep it `false` until the privacy/legal review, PDPO processing-registration update, Google Cloud setup, and staged end-to-end test are complete. Existing applications remain grandfathered and never become ID-required.
+
+When enabled, an applicant uploads one JPEG, PNG, or WebP photo. The browser rotates it, resizes the longest edge to at most 2,000 pixels, re-encodes it as JPEG (which removes the original metadata), and limits it to 1.5 MB. It uploads directly to the private `homeowner-identification` bucket using a path-specific signed token. Google Vision Text Detection runs synchronously and only the resulting status and suggested name are stored; raw OCR text and ID numbers are not retained.
+
+Required server-only variables:
+
+- `GOOGLE_CLOUD_VISION_API_KEY`: a dedicated credential restricted to the Cloud Vision API.
+- `SIGNUP_RATE_LIMIT_SECRET`: at least 32 random bytes, used to HMAC IP and email rate-limit identifiers.
+- `CRON_SECRET`: a random bearer secret Vercel supplies to the daily cleanup request.
+
+Create the two application secrets with a cryptographically secure generator such as `openssl rand -base64 48`. Never put these values in a `NEXT_PUBLIC_` variable. Enable Cloud Vision in a dedicated Google Cloud project, restrict the API key to `vision.googleapis.com`, set a conservative daily quota and billing-budget alerts, and rotate the key immediately if it may have been exposed.
+
+Only active community managers can open the on-demand five-minute ID link. Each access is recorded in `homeowner_id_access_log`. Managers must inspect the image and check **I compared the applicant’s name with the ID** before approval. Audit access in the Supabase SQL editor with a restricted, trusted database account; do not export applicant data unnecessarily:
+
+```sql
+select application_id, manager_id, accessed_at
+from public.homeowner_id_access_log
+order by accessed_at desc;
+```
+
+The Vercel cron calls `/api/cron/homeowner-id-retention` daily. It deletes decided IDs after 30 days, expires pending ID-backed applications and deletes their IDs after 60 days, removes abandoned drafts after 24 hours, and removes rate-limit rows after seven days. An object is marked deleted only after Storage confirms removal; failures are retried next day. To run it manually, use an HTTPS request with `Authorization: Bearer <CRON_SECRET>` and inspect only the aggregate response counts.
+
+For an incident, first set `HOMEOWNER_ID_REQUIREMENT_ENABLED=false` and redeploy, rotate the affected Google/Vercel/Supabase credentials, review manager access events and deployment logs without copying signed URLs or personal data, notify the community privacy lead, and follow the legally reviewed breach-response process. Do not log images, signed URLs, OCR text, applicant names, or object paths while investigating.
+
 ## Guest passes
 
 Residents, homeowners, and administrators can open **Guest access** from the dashboard, enter a visitor's name and international phone number, and choose access for today, 24 hours, or a custom period. The resulting QR code can be shared through the device share sheet, copied as a link, or downloaded.
@@ -151,6 +177,9 @@ For guest access, verify pass creation, native sharing or copy fallback, scannin
 - **Email never arrives:** Supabase's development mail service is rate-limited. Check Auth logs and configure custom SMTP for real users.
 - **Homeowner application fails immediately:** confirm `SUPABASE_SECRET_KEY` is configured server-side and is not prefixed with `NEXT_PUBLIC_`.
 - **Approved homeowner email fails:** check Supabase Auth/SMTP logs, then use **Retry email** in the manager review history.
+- **ID upload is unavailable:** confirm the feature flag and all three ID-workflow secrets are configured. Leave the flag off if the Google key or privacy approval is missing.
+- **OCR cannot suggest a name:** applicants can enter it manually; the manager queue highlights the failure for closer inspection.
+- **Retention reports failures:** rerun the authenticated cleanup route, inspect Supabase Storage health, and confirm deletion before making any manual database update.
 - **Vercel build differs from local:** verify the hosted values exist in the Production environment and that the staged build came from the expected `main` commit.
 
 This repository intentionally has no license until the community chooses one.

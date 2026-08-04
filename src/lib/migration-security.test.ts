@@ -7,6 +7,7 @@ const visitorMigration = readFileSync(join(process.cwd(), "supabase/migrations/2
 const requestKeyMigration = readFileSync(join(process.cwd(), "supabase/migrations/20260724131734_add_visitor_request_keys.sql"), "utf8");
 const homeownerMigration = readFileSync(join(process.cwd(), "supabase/migrations/20260724142031_homeowner_applications.sql"), "utf8");
 const managerVisitorMigration = readFileSync(join(process.cwd(), "supabase/migrations/20260804134454_allow_community_managers_visitor_passes.sql"), "utf8");
+const homeownerIdMigration = readFileSync(join(process.cwd(), "supabase/migrations/20260804180613_homeowner_id_verification.sql"), "utf8");
 
 describe("profiles migration security", () => {
   it("enables RLS and limits browser updates to display_name", () => {
@@ -90,5 +91,25 @@ describe("community manager visitor policy migration", () => {
   it("retains ownership and active-account checks", () => {
     expect(managerVisitorMigration.match(/resident_id = \(select auth\.uid\(\)\)/g)?.length).toBe(4);
     expect(managerVisitorMigration.match(/profiles\.access_status = 'active'/g)?.length).toBe(4);
+  });
+});
+
+describe("homeowner identification migration security", () => {
+  it("creates a private, JPEG-only bucket with a 1.5 MB limit", () => {
+    expect(homeownerIdMigration).toContain("'homeowner-identification', 'homeowner-identification', false, 1572864");
+    expect(homeownerIdMigration).toContain("array['image/jpeg']");
+    expect(homeownerIdMigration).not.toContain("on storage.objects");
+  });
+
+  it("keeps drafts, rate limits, and access logs inaccessible to browser roles", () => {
+    for (const table of ["homeowner_id_upload_drafts", "homeowner_id_rate_limits", "homeowner_id_access_log"]) {
+      expect(homeownerIdMigration).toContain(`alter table public.${table} enable row level security`);
+      expect(homeownerIdMigration).toContain(`revoke all on table public.${table} from public, anon, authenticated`);
+    }
+  });
+
+  it("grandfathers existing applications and validates one-time token hashes", () => {
+    expect(homeownerIdMigration).toContain("add column id_required boolean not null default false");
+    expect(homeownerIdMigration).toContain("token_hash ~ '^[0-9a-f]{64}$'");
   });
 });

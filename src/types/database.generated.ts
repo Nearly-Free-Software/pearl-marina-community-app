@@ -39,11 +39,27 @@ export type Database = {
           auth_user_id: string | null
           created_at: string
           email: string
+          expired_at: string | null
           full_name: string
           id: string
+          id_delete_after: string | null
+          id_deleted_at: string | null
+          id_image_mime_type: string | null
+          id_image_path: string | null
+          id_image_size: number | null
+          id_ocr_status:
+            | Database["public"]["Enums"]["homeowner_id_ocr_status"]
+            | null
+          id_ocr_suggested_name: string | null
+          id_required: boolean
+          id_verified_at: string | null
+          id_verified_by: string | null
           invitation_error: string | null
           invitation_sent_at: string | null
+          name_confirmed_at: string | null
           phone: string
+          privacy_accepted_at: string | null
+          privacy_notice_version: string | null
           rejection_reason: string | null
           reviewed_at: string | null
           reviewed_by: string | null
@@ -56,11 +72,27 @@ export type Database = {
           auth_user_id?: string | null
           created_at?: string
           email: string
+          expired_at?: string | null
           full_name: string
           id?: string
+          id_delete_after?: string | null
+          id_deleted_at?: string | null
+          id_image_mime_type?: string | null
+          id_image_path?: string | null
+          id_image_size?: number | null
+          id_ocr_status?:
+            | Database["public"]["Enums"]["homeowner_id_ocr_status"]
+            | null
+          id_ocr_suggested_name?: string | null
+          id_required?: boolean
+          id_verified_at?: string | null
+          id_verified_by?: string | null
           invitation_error?: string | null
           invitation_sent_at?: string | null
+          name_confirmed_at?: string | null
           phone: string
+          privacy_accepted_at?: string | null
+          privacy_notice_version?: string | null
           rejection_reason?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
@@ -73,17 +105,137 @@ export type Database = {
           auth_user_id?: string | null
           created_at?: string
           email?: string
+          expired_at?: string | null
           full_name?: string
           id?: string
+          id_delete_after?: string | null
+          id_deleted_at?: string | null
+          id_image_mime_type?: string | null
+          id_image_path?: string | null
+          id_image_size?: number | null
+          id_ocr_status?:
+            | Database["public"]["Enums"]["homeowner_id_ocr_status"]
+            | null
+          id_ocr_suggested_name?: string | null
+          id_required?: boolean
+          id_verified_at?: string | null
+          id_verified_by?: string | null
           invitation_error?: string | null
           invitation_sent_at?: string | null
+          name_confirmed_at?: string | null
           phone?: string
+          privacy_accepted_at?: string | null
+          privacy_notice_version?: string | null
           rejection_reason?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           status?: Database["public"]["Enums"]["homeowner_application_status"]
           sub_community?: Database["public"]["Enums"]["sub_community"]
           unit_number?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      homeowner_id_access_log: {
+        Row: {
+          accessed_at: string
+          application_id: string
+          id: number
+          manager_id: string
+        }
+        Insert: {
+          accessed_at?: string
+          application_id: string
+          id?: never
+          manager_id: string
+        }
+        Update: {
+          accessed_at?: string
+          application_id?: string
+          id?: never
+          manager_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "homeowner_id_access_log_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "homeowner_applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      homeowner_id_rate_limits: {
+        Row: {
+          created_at: string
+          email_hash: string
+          event_type: string
+          id: number
+          ip_hash: string
+        }
+        Insert: {
+          created_at?: string
+          email_hash: string
+          event_type: string
+          id?: never
+          ip_hash: string
+        }
+        Update: {
+          created_at?: string
+          email_hash?: string
+          event_type?: string
+          id?: never
+          ip_hash?: string
+        }
+        Relationships: []
+      }
+      homeowner_id_upload_drafts: {
+        Row: {
+          consumed_at: string | null
+          created_at: string
+          email: string
+          expires_at: string
+          file_size: number | null
+          id: string
+          ip_hash: string
+          mime_type: string | null
+          ocr_status: Database["public"]["Enums"]["homeowner_id_ocr_status"]
+          ocr_suggested_name: string | null
+          processed_at: string | null
+          storage_path: string
+          token_hash: string
+          updated_at: string
+        }
+        Insert: {
+          consumed_at?: string | null
+          created_at?: string
+          email: string
+          expires_at?: string
+          file_size?: number | null
+          id?: string
+          ip_hash: string
+          mime_type?: string | null
+          ocr_status?: Database["public"]["Enums"]["homeowner_id_ocr_status"]
+          ocr_suggested_name?: string | null
+          processed_at?: string | null
+          storage_path: string
+          token_hash: string
+          updated_at?: string
+        }
+        Update: {
+          consumed_at?: string | null
+          created_at?: string
+          email?: string
+          expires_at?: string
+          file_size?: number | null
+          id?: string
+          ip_hash?: string
+          mime_type?: string | null
+          ocr_status?: Database["public"]["Enums"]["homeowner_id_ocr_status"]
+          ocr_suggested_name?: string | null
+          processed_at?: string | null
+          storage_path?: string
+          token_hash?: string
           updated_at?: string
         }
         Relationships: []
@@ -201,7 +353,12 @@ export type Database = {
         | "homeowner"
         | "resident"
         | "service_provider"
-      homeowner_application_status: "pending" | "approved" | "rejected"
+      homeowner_application_status:
+        | "pending"
+        | "approved"
+        | "rejected"
+        | "expired"
+      homeowner_id_ocr_status: "pending" | "name_found" | "no_name" | "failed"
       sub_community:
         | "Bella Vista Apartments"
         | "Mirabella Villas"
@@ -346,7 +503,13 @@ export const Constants = {
         "resident",
         "service_provider",
       ],
-      homeowner_application_status: ["pending", "approved", "rejected"],
+      homeowner_application_status: [
+        "pending",
+        "approved",
+        "rejected",
+        "expired",
+      ],
+      homeowner_id_ocr_status: ["pending", "name_found", "no_name", "failed"],
       sub_community: [
         "Bella Vista Apartments",
         "Mirabella Villas",

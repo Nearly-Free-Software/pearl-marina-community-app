@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { PendingButton } from "@/components/ui/pending-button";
 import { subCommunities } from "@/lib/homeowner-applications";
 import { submitHomeownerApplication } from "./actions";
+import { IdSignupForm } from "./id-signup-form";
+import { isIdRequirementEnabled } from "@/lib/homeowner-identification";
 
 export const dynamic = "force-dynamic";
 
@@ -18,6 +20,7 @@ export default async function SignupPage({
   const error = params.error === "submission_failed"
     ? "We could not submit your application. Please try again."
     : params.error;
+  const idRequired = isIdRequirementEnabled();
 
   return (
     <main className="grid min-h-screen place-items-center px-5 py-10">
@@ -42,7 +45,7 @@ export default async function SignupPage({
                 </div>
                 <Link href="/login" className="block text-center text-sm font-medium text-primary underline-offset-4 hover:underline">Return to sign in</Link>
               </div>
-            ) : (
+            ) : idRequired ? <IdSignupForm error={error} /> : (
               <form action={submitHomeownerApplication} className="space-y-4">
                 <div className="space-y-2"><label htmlFor="full_name" className="text-sm font-medium">Full name</label><Input id="full_name" name="full_name" autoComplete="name" maxLength={100} required /></div>
                 <div className="space-y-2"><label htmlFor="email" className="text-sm font-medium">Email address</label><Input id="email" name="email" type="email" autoComplete="email" inputMode="email" required /></div>

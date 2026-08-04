@@ -6,7 +6,8 @@ export type SubCommunity =
   | "La Perla Bungalows"
   | "Riviera Townhouses"
   | "Kingswood Homes";
-export type HomeownerApplicationStatus = "pending" | "approved" | "rejected";
+export type HomeownerApplicationStatus = "pending" | "approved" | "rejected" | "expired";
+export type HomeownerIdOcrStatus = "pending" | "name_found" | "no_name" | "failed";
 
 export type Profile = {
   id: string;
@@ -34,6 +35,20 @@ export type HomeownerApplication = {
   auth_user_id: string | null;
   invitation_sent_at: string | null;
   invitation_error: string | null;
+  id_required: boolean;
+  id_image_path: string | null;
+  id_image_mime_type: string | null;
+  id_image_size: number | null;
+  id_ocr_status: HomeownerIdOcrStatus | null;
+  id_ocr_suggested_name: string | null;
+  name_confirmed_at: string | null;
+  privacy_notice_version: string | null;
+  privacy_accepted_at: string | null;
+  id_verified_at: string | null;
+  id_verified_by: string | null;
+  id_delete_after: string | null;
+  id_deleted_at: string | null;
+  expired_at: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -70,7 +85,7 @@ export type Database = {
       };
       homeowner_applications: {
         Row: HomeownerApplication;
-        Insert: Omit<HomeownerApplication, "id" | "status" | "reviewed_at" | "reviewed_by" | "rejection_reason" | "auth_user_id" | "invitation_sent_at" | "invitation_error" | "created_at" | "updated_at"> & {
+        Insert: Pick<HomeownerApplication, "full_name" | "email" | "phone" | "sub_community" | "unit_number"> & {
           id?: string;
           status?: HomeownerApplicationStatus;
           reviewed_at?: string | null;
@@ -79,10 +94,52 @@ export type Database = {
           auth_user_id?: string | null;
           invitation_sent_at?: string | null;
           invitation_error?: string | null;
+          id_required?: boolean;
+          id_image_path?: string | null;
+          id_image_mime_type?: string | null;
+          id_image_size?: number | null;
+          id_ocr_status?: HomeownerIdOcrStatus | null;
+          id_ocr_suggested_name?: string | null;
+          name_confirmed_at?: string | null;
+          privacy_notice_version?: string | null;
+          privacy_accepted_at?: string | null;
+          id_verified_at?: string | null;
+          id_verified_by?: string | null;
+          id_delete_after?: string | null;
+          id_deleted_at?: string | null;
+          expired_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
         Update: Partial<HomeownerApplication>;
+        Relationships: [];
+      };
+      homeowner_id_upload_drafts: {
+        Row: {
+          id: string; email: string; token_hash: string; ip_hash: string; storage_path: string;
+          mime_type: string | null; file_size: number | null; ocr_status: HomeownerIdOcrStatus;
+          ocr_suggested_name: string | null; processed_at: string | null; consumed_at: string | null;
+          expires_at: string; created_at: string; updated_at: string;
+        };
+        Insert: {
+          id?: string; email: string; token_hash: string; ip_hash: string; storage_path: string;
+          mime_type?: string | null; file_size?: number | null; ocr_status?: HomeownerIdOcrStatus;
+          ocr_suggested_name?: string | null; processed_at?: string | null; consumed_at?: string | null;
+          expires_at?: string; created_at?: string; updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["homeowner_id_upload_drafts"]["Row"]>;
+        Relationships: [];
+      };
+      homeowner_id_rate_limits: {
+        Row: { id: number; email_hash: string; ip_hash: string; event_type: "upload" | "ocr"; created_at: string };
+        Insert: { id?: number; email_hash: string; ip_hash: string; event_type: "upload" | "ocr"; created_at?: string };
+        Update: never;
+        Relationships: [];
+      };
+      homeowner_id_access_log: {
+        Row: { id: number; application_id: string; manager_id: string; accessed_at: string };
+        Insert: { id?: number; application_id: string; manager_id: string; accessed_at?: string };
+        Update: never;
         Relationships: [];
       };
       visitor_passes: {
@@ -108,6 +165,7 @@ export type Database = {
       access_status: AccessStatus;
       sub_community: SubCommunity;
       homeowner_application_status: HomeownerApplicationStatus;
+      homeowner_id_ocr_status: HomeownerIdOcrStatus;
     };
     CompositeTypes: Record<string, never>;
   };

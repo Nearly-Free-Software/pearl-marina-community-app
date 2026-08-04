@@ -24,11 +24,17 @@ async function findAuthUserByEmail(email: string) {
   return null;
 }
 
-export async function approveHomeownerApplication(applicationId: string) {
+export async function approveHomeownerApplication(applicationId: string, formData?: FormData) {
   const manager = await requireManager();
   const admin = createAdminClient();
   const { data: application } = await admin.from("homeowner_applications").select("*").eq("id", applicationId).maybeSingle();
   if (!application || application.status === "rejected") redirect("/dashboard/applications?error=not_available");
+
+  if (application.status === "pending" && application.id_required) {
+    if (formData?.get("id_compared") !== "yes" || !application.id_image_path || application.id_deleted_at) {
+      redirect("/dashboard/applications?error=id_verification_required");
+    }
+  }
 
   if (application.status === "pending") {
     const { error } = await admin.from("homeowner_applications").update({
@@ -37,6 +43,9 @@ export async function approveHomeownerApplication(applicationId: string) {
       reviewed_by: manager.id,
       rejection_reason: null,
       invitation_error: null,
+      id_verified_at: application.id_required ? new Date().toISOString() : null,
+      id_verified_by: application.id_required ? manager.id : null,
+      id_delete_after: application.id_required ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1_000).toISOString() : null,
     }).eq("id", application.id).eq("status", "pending");
     if (error) redirect("/dashboard/applications?error=approval_failed");
   }
@@ -91,12 +100,15 @@ export async function rejectHomeownerApplication(applicationId: string, formData
   const manager = await requireManager();
   const reason = String(formData.get("reason") ?? "").trim().slice(0, 500) || null;
   const admin = createAdminClient();
+  const { data: application } = await admin.from("homeowner_applications").select("id_required").eq("id", applicationId).maybeSingle();
+  if (!application) redirect("/dashboard/applications?error=not_available");
   const { error } = await admin.from("homeowner_applications").update({
     status: "rejected",
     reviewed_at: new Date().toISOString(),
     reviewed_by: manager.id,
     rejection_reason: reason,
     invitation_error: null,
+    id_delete_after: application.id_required ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1_000).toISOString() : null,
   }).eq("id", applicationId).eq("status", "pending");
   if (error) redirect("/dashboard/applications?error=rejection_failed");
   revalidatePath("/dashboard/applications");
