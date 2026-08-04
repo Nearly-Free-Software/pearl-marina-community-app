@@ -69,7 +69,16 @@ export async function createVisitorPass(
     .single();
 
   if (error?.code === "23505") redirect("/visitors?duplicate=1");
-  if (error || !data) return { error: "We could not create this pass. Please try again." };
+  if (error || !data) {
+    console.error("[visitor-pass:create] Supabase insert failed", {
+      code: error?.code,
+      message: error?.message,
+      details: error?.details,
+      hint: error?.hint,
+      hasData: Boolean(data),
+    });
+    return { error: "We could not create this pass. Please try again." };
+  }
   revalidatePath("/visitors");
   redirect(`/visitors/${data.id}?token=${encodeURIComponent(token)}&created=1`);
 }

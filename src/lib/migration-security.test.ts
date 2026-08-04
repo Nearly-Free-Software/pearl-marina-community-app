@@ -6,6 +6,7 @@ const migration = readFileSync(join(process.cwd(), "supabase/migrations/20260721
 const visitorMigration = readFileSync(join(process.cwd(), "supabase/migrations/20260724123643_create_visitor_passes.sql"), "utf8");
 const requestKeyMigration = readFileSync(join(process.cwd(), "supabase/migrations/20260724131734_add_visitor_request_keys.sql"), "utf8");
 const homeownerMigration = readFileSync(join(process.cwd(), "supabase/migrations/20260724142031_homeowner_applications.sql"), "utf8");
+const managerVisitorMigration = readFileSync(join(process.cwd(), "supabase/migrations/20260804134454_allow_community_managers_visitor_passes.sql"), "utf8");
 
 describe("profiles migration security", () => {
   it("enables RLS and limits browser updates to display_name", () => {
@@ -75,5 +76,19 @@ describe("visitor pass migration security", () => {
     expect(visitorMigration).toContain("function public.verify_visitor_pass");
     expect(visitorMigration).toContain("grant execute on function public.verify_visitor_pass(text) to anon, authenticated");
     expect(visitorMigration).not.toContain("guest_phone text,");
+  });
+});
+
+describe("community manager visitor policy migration", () => {
+  it("adds community managers to all three owner-scoped visitor policies", () => {
+    expect(managerVisitorMigration.match(/'community_manager'/g)?.length).toBe(4);
+    expect(managerVisitorMigration).toContain('alter policy "Inviters can read their own visitor passes"');
+    expect(managerVisitorMigration).toContain('alter policy "Inviters can create their own visitor passes"');
+    expect(managerVisitorMigration).toContain('alter policy "Inviters can revoke or replace their own visitor passes"');
+  });
+
+  it("retains ownership and active-account checks", () => {
+    expect(managerVisitorMigration.match(/resident_id = \(select auth\.uid\(\)\)/g)?.length).toBe(4);
+    expect(managerVisitorMigration.match(/profiles\.access_status = 'active'/g)?.length).toBe(4);
   });
 });
