@@ -78,7 +78,7 @@ Rejected applicants may submit a corrected application later. Rejection reasons 
 
 ### Government ID verification (gated rollout)
 
-The optional homeowner ID workflow is controlled by the server-only `HOMEOWNER_ID_REQUIREMENT_ENABLED` variable. Keep it `false` until the privacy/legal review, PDPO processing-registration update, Google Cloud setup, and staged end-to-end test are complete. Existing applications remain grandfathered and never become ID-required.
+The optional homeowner ID workflow is controlled by the server-only `HOMEOWNER_ID_REQUIREMENT_ENABLED` variable. Keep it `false` until the privacy/legal review, PDPO processing-registration update, automated name-suggestion setup, and staged end-to-end test are complete. Existing applications remain grandfathered and never become ID-required.
 
 When enabled, an applicant uploads one JPEG, PNG, or WebP photo. The browser rotates it, resizes the longest edge to at most 2,000 pixels, re-encodes it as JPEG (which removes the original metadata), and limits it to 1.5 MB. It uploads directly to the private `homeowner-identification` bucket using a path-specific signed token. Google Vision Text Detection runs synchronously and only the resulting status and suggested name are stored; raw OCR text and ID numbers are not retained.
 
@@ -98,7 +98,7 @@ from public.homeowner_id_access_log
 order by accessed_at desc;
 ```
 
-The Vercel cron calls `/api/cron/homeowner-id-retention` daily. It deletes decided IDs after 30 days, expires pending ID-backed applications and deletes their IDs after 60 days, removes abandoned drafts after 24 hours, and removes rate-limit rows after seven days. An object is marked deleted only after Storage confirms removal; failures are retried next day. To run it manually, use an HTTPS request with `Authorization: Bearer <CRON_SECRET>` and inspect only the aggregate response counts.
+The Vercel cron calls `/api/cron/homeowner-id-retention` hourly. Images are deleted immediately after a decision is recorded; the cleanup job retries any failed deletion. It expires undecided ID-backed applications and deletes their images within 24 hours, removes abandoned drafts after 24 hours, and removes rate-limit rows after seven days. An object is marked deleted only after Storage confirms removal. To run it manually, use an HTTPS request with `Authorization: Bearer <CRON_SECRET>` and inspect only the aggregate response counts.
 
 For an incident, first set `HOMEOWNER_ID_REQUIREMENT_ENABLED=false` and redeploy, rotate the affected Google/Vercel/Supabase credentials, review manager access events and deployment logs without copying signed URLs or personal data, notify the community privacy lead, and follow the legally reviewed breach-response process. Do not log images, signed URLs, OCR text, applicant names, or object paths while investigating.
 
@@ -180,7 +180,7 @@ For guest access, verify pass creation, native sharing or copy fallback, reopeni
 - **Homeowner application fails immediately:** confirm `SUPABASE_SECRET_KEY` and `SUPABASE_SERVICE_ROLE_KEY` are configured server-side and neither is prefixed with `NEXT_PUBLIC_`.
 - **Approved homeowner email fails:** check Supabase Auth/SMTP logs, then use **Retry email** in the manager review history.
 - **ID upload is unavailable:** confirm the feature flag and all three ID-workflow secrets are configured. Leave the flag off if the Google key or privacy approval is missing.
-- **OCR cannot suggest a name:** applicants can enter it manually; the manager queue highlights the failure for closer inspection.
+- **The name suggestion is unavailable:** applicants can enter their name manually; the manager queue highlights the application for closer inspection.
 - **Retention reports failures:** rerun the authenticated cleanup route, inspect Supabase Storage health, and confirm deletion before making any manual database update.
 - **Vercel build differs from local:** verify the hosted values exist in the Production environment and that the staged build came from the expected `main` commit.
 

@@ -36,16 +36,17 @@ export async function approveHomeownerApplication(applicationId: string, formDat
     }
   }
 
+  const decisionAt = new Date().toISOString();
   if (application.status === "pending") {
     const { error } = await admin.from("homeowner_applications").update({
       status: "approved",
-      reviewed_at: new Date().toISOString(),
+      reviewed_at: decisionAt,
       reviewed_by: manager.id,
       rejection_reason: null,
       invitation_error: null,
       id_verified_at: application.id_required ? new Date().toISOString() : null,
       id_verified_by: application.id_required ? manager.id : null,
-      id_delete_after: application.id_required ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1_000).toISOString() : null,
+      id_delete_after: application.id_required ? decisionAt : null,
     }).eq("id", application.id).eq("status", "pending");
     if (error) redirect("/dashboard/applications?error=approval_failed");
   }
@@ -86,6 +87,13 @@ export async function approveHomeownerApplication(applicationId: string, formDat
     }).eq("id", authUser.id);
   }
 
+  if (application.id_required && application.id_image_path && !application.id_deleted_at) {
+    const { error: storageError } = await admin.storage.from("homeowner-identification").remove([application.id_image_path]);
+    if (!storageError) {
+      await admin.from("homeowner_applications").update({ id_image_path: null, id_deleted_at: decisionAt }).eq("id", application.id);
+    }
+  }
+
   await admin.from("homeowner_applications").update({
     auth_user_id: authUser?.id ?? null,
     invitation_sent_at: inviteError ? null : new Date().toISOString(),
@@ -100,17 +108,24 @@ export async function rejectHomeownerApplication(applicationId: string, formData
   const manager = await requireManager();
   const reason = String(formData.get("reason") ?? "").trim().slice(0, 500) || null;
   const admin = createAdminClient();
-  const { data: application } = await admin.from("homeowner_applications").select("id_required").eq("id", applicationId).maybeSingle();
+  const { data: application } = await admin.from("homeowner_applications").select("id_required,id_image_path,id_deleted_at").eq("id", applicationId).maybeSingle();
   if (!application) redirect("/dashboard/applications?error=not_available");
+  const decisionAt = new Date().toISOString();
   const { error } = await admin.from("homeowner_applications").update({
     status: "rejected",
-    reviewed_at: new Date().toISOString(),
+    reviewed_at: decisionAt,
     reviewed_by: manager.id,
     rejection_reason: reason,
     invitation_error: null,
-    id_delete_after: application.id_required ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1_000).toISOString() : null,
+    id_delete_after: application.id_required ? decisionAt : null,
   }).eq("id", applicationId).eq("status", "pending");
   if (error) redirect("/dashboard/applications?error=rejection_failed");
+  if (application.id_required && application.id_image_path && !application.id_deleted_at) {
+    const { error: storageError } = await admin.storage.from("homeowner-identification").remove([application.id_image_path]);
+    if (!storageError) {
+      await admin.from("homeowner_applications").update({ id_image_path: null, id_deleted_at: decisionAt }).eq("id", applicationId);
+    }
+  }
   revalidatePath("/dashboard/applications");
   redirect("/dashboard/applications?rejected=1");
 }

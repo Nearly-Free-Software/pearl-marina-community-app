@@ -3,7 +3,7 @@ import { createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypt
 export const HOMEOWNER_ID_BUCKET = "homeowner-identification";
 export const HOMEOWNER_ID_MAX_BYTES = 1_572_864;
 export const HOMEOWNER_ID_MAX_DIMENSION = 2_000;
-export const HOMEOWNER_ID_PRIVACY_VERSION = "2026-08-04";
+export const HOMEOWNER_ID_PRIVACY_VERSION = "2026-08-06";
 export const HOMEOWNER_ID_DRAFT_HOURS = 24;
 
 const NAME_VALUE = /^[\p{L}][\p{L}'’.-]*(?:\s+[\p{L}][\p{L}'’.-]*){0,5}$/u;

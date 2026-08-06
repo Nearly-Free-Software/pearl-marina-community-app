@@ -19,7 +19,7 @@ export async function GET(request: Request) {
   const now = new Date();
   const nowIso = now.toISOString();
   const draftCutoff = nowIso;
-  const pendingCutoff = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1_000).toISOString();
+  const pendingCutoff = new Date(now.getTime() - 24 * 60 * 60 * 1_000).toISOString();
   const counts = { decidedDeleted: 0, pendingExpired: 0, draftsDeleted: 0, failures: 0 };
 
   const { data: decided = [] } = await admin.from("homeowner_applications")
