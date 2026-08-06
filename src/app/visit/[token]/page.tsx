@@ -43,7 +43,7 @@ export default async function VerifyVisitorPassPage({ params }: { params: Promis
             {verification.guest_name && verification.resident_name ? (
               <dl className="mt-7 space-y-4 border-t border-current/20 pt-6">
                 <div><dt className="text-xs font-semibold uppercase tracking-wide opacity-70">Guest</dt><dd className="mt-1 text-lg font-semibold">{verification.guest_name}</dd></div>
-                <div><dt className="text-xs font-semibold uppercase tracking-wide opacity-70">Invited by</dt><dd className="mt-1 font-medium">{verification.resident_name}{verification.resident_sub_community || verification.resident_unit_number ? ` (${[verification.resident_sub_community, verification.resident_unit_number].filter(Boolean).join(" ")})` : null}</dd></div>
+                <div><dt className="text-xs font-semibold uppercase tracking-wide opacity-70">Invited by</dt><dd className="mt-1 font-medium">{verification.resident_name}{verification.resident_sub_community || verification.resident_unit_number ? <strong className="font-bold"> ({[verification.resident_sub_community, verification.resident_unit_number].filter(Boolean).join(" ")})</strong> : null}</dd></div>
                 {verification.valid_from && verification.valid_until ? (
                   <div><dt className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wide opacity-70"><Clock3 className="size-3" /> Access period</dt><dd className="mt-1 text-sm leading-6">{formatKampalaDateTime(verification.valid_from)}<br />to {formatKampalaDateTime(verification.valid_until)}</dd></div>
                 ) : null}
