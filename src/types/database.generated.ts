@@ -339,6 +339,8 @@ export type Database = {
         Returns: {
           guest_name: string
           resident_name: string
+          resident_sub_community: Database["public"]["Enums"]["sub_community"] | null
+          resident_unit_number: string | null
           status: string
           valid_from: string
           valid_until: string
@@ -361,10 +363,10 @@ export type Database = {
       homeowner_id_ocr_status: "pending" | "name_found" | "no_name" | "failed"
       sub_community:
         | "Bella Vista Apartments"
-        | "Mirabella Villas"
+        | "Mirabella and Signature Villas"
         | "La Perla Bungalows"
         | "Riviera Townhouses"
-        | "Kingswood Homes"
+        | "Kingswood Park"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -512,10 +514,10 @@ export const Constants = {
       homeowner_id_ocr_status: ["pending", "name_found", "no_name", "failed"],
       sub_community: [
         "Bella Vista Apartments",
-        "Mirabella Villas",
+        "Mirabella and Signature Villas",
         "La Perla Bungalows",
         "Riviera Townhouses",
-        "Kingswood Homes",
+        "Kingswood Park",
       ],
     },
   },

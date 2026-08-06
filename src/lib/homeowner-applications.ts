@@ -2,10 +2,10 @@ import type { SubCommunity } from "@/types/database";
 
 export const subCommunities = [
   "Bella Vista Apartments",
-  "Mirabella Villas",
+  "Mirabella and Signature Villas",
   "La Perla Bungalows",
   "Riviera Townhouses",
-  "Kingswood Homes",
+  "Kingswood Park",
 ] as const satisfies readonly SubCommunity[];
 
 export const applicationPhonePattern = /^\+[1-9]\d{7,14}$/;

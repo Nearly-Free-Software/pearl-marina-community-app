@@ -21,7 +21,7 @@ export default async function VerifyVisitorPassPage({ params }: { params: Promis
   const verification: VisitorPassVerification =
     !error && data?.[0]
       ? data[0]
-      : { status: "invalid", guest_name: null, resident_name: null, valid_from: null, valid_until: null };
+      : { status: "invalid", guest_name: null, resident_name: null, resident_sub_community: null, resident_unit_number: null, valid_from: null, valid_until: null };
   const copy = verificationCopy[verification.status] ?? verificationCopy.invalid;
   const tone = {
     success: "border-emerald-300 bg-emerald-50 text-emerald-950",
@@ -43,7 +43,7 @@ export default async function VerifyVisitorPassPage({ params }: { params: Promis
             {verification.guest_name && verification.resident_name ? (
               <dl className="mt-7 space-y-4 border-t border-current/20 pt-6">
                 <div><dt className="text-xs font-semibold uppercase tracking-wide opacity-70">Guest</dt><dd className="mt-1 text-lg font-semibold">{verification.guest_name}</dd></div>
-                <div><dt className="text-xs font-semibold uppercase tracking-wide opacity-70">Invited by</dt><dd className="mt-1 font-medium">{verification.resident_name}</dd></div>
+                <div><dt className="text-xs font-semibold uppercase tracking-wide opacity-70">Invited by</dt><dd className="mt-1 font-medium">{verification.resident_name}{verification.resident_sub_community || verification.resident_unit_number ? ` (${[verification.resident_sub_community, verification.resident_unit_number].filter(Boolean).join(" ")})` : null}</dd></div>
                 {verification.valid_from && verification.valid_until ? (
                   <div><dt className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wide opacity-70"><Clock3 className="size-3" /> Access period</dt><dd className="mt-1 text-sm leading-6">{formatKampalaDateTime(verification.valid_from)}<br />to {formatKampalaDateTime(verification.valid_until)}</dd></div>
                 ) : null}

@@ -20,10 +20,10 @@ describe("homeowner application validation", () => {
   it("lists the five fixed Pearl Marina communities", () => {
     expect(subCommunities).toEqual([
       "Bella Vista Apartments",
-      "Mirabella Villas",
+      "Mirabella and Signature Villas",
       "La Perla Bungalows",
       "Riviera Townhouses",
-      "Kingswood Homes",
+      "Kingswood Park",
     ]);
   });
 

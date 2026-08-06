@@ -2,10 +2,10 @@ export type CommunityRole = "admin" | "community_manager" | "homeowner" | "resid
 export type AccessStatus = "active" | "disabled";
 export type SubCommunity =
   | "Bella Vista Apartments"
-  | "Mirabella Villas"
+  | "Mirabella and Signature Villas"
   | "La Perla Bungalows"
   | "Riviera Townhouses"
-  | "Kingswood Homes";
+  | "Kingswood Park";
 export type HomeownerApplicationStatus = "pending" | "approved" | "rejected" | "expired";
 export type HomeownerIdOcrStatus = "pending" | "name_found" | "no_name" | "failed";
 
@@ -70,6 +70,8 @@ export type VisitorPassVerification = {
   status: "valid" | "not_yet_valid" | "expired" | "revoked" | "invalid";
   guest_name: string | null;
   resident_name: string | null;
+  resident_sub_community: SubCommunity | null;
+  resident_unit_number: string | null;
   valid_from: string | null;
   valid_until: string | null;
 };
