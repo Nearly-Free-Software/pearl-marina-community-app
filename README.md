@@ -86,7 +86,7 @@ Required server-only variables:
 
 - `GOOGLE_CLOUD_VISION_API_KEY`: a dedicated credential restricted to the Cloud Vision API.
 - `SIGNUP_RATE_LIMIT_SECRET`: at least 32 random bytes, used to HMAC IP and email rate-limit identifiers.
-- `CRON_SECRET`: a random bearer secret Vercel supplies to the daily cleanup request.
+- `CRON_SECRET`: a random bearer secret shared only by the production app and the protected cleanup workflow.
 
 Create the two application secrets with a cryptographically secure generator such as `openssl rand -base64 48`. Never put these values in a `NEXT_PUBLIC_` variable. Enable Cloud Vision in a dedicated Google Cloud project, restrict the API key to `vision.googleapis.com`, set a conservative daily quota and billing-budget alerts, and rotate the key immediately if it may have been exposed.
 
@@ -98,7 +98,7 @@ from public.homeowner_id_access_log
 order by accessed_at desc;
 ```
 
-The Vercel cron calls `/api/cron/homeowner-id-retention` hourly. Images are deleted immediately after a decision is recorded; the cleanup job retries any failed deletion. It expires undecided ID-backed applications and deletes their images within 24 hours, removes abandoned drafts after 24 hours, and removes rate-limit rows after seven days. An object is marked deleted only after Storage confirms removal. To run it manually, use an HTTPS request with `Authorization: Bearer <CRON_SECRET>` and inspect only the aggregate response counts.
+The scheduled GitHub Actions workflow calls `/api/cron/homeowner-id-retention` hourly. This avoids Vercel Hobby's once-daily Cron limit while preserving the 24-hour retention policy. Images are deleted immediately after a decision is recorded; the cleanup job retries any failed deletion. It expires undecided ID-backed applications and deletes their images within 24 hours, removes abandoned drafts after 24 hours, and removes rate-limit rows after seven days. An object is marked deleted only after Storage confirms removal. Configure the same `CRON_SECRET` as a production Vercel variable and a GitHub Actions repository secret. To run the cleanup manually, dispatch the **Homeowner ID retention** workflow or use an HTTPS request with `Authorization: Bearer <CRON_SECRET>` and inspect only the aggregate response counts.
 
 For an incident, first set `HOMEOWNER_ID_REQUIREMENT_ENABLED=false` and redeploy, rotate the affected Google/Vercel/Supabase credentials, review manager access events and deployment logs without copying signed URLs or personal data, notify the community privacy lead, and follow the legally reviewed breach-response process. Do not log images, signed URLs, OCR text, applicant names, or object paths while investigating.
 

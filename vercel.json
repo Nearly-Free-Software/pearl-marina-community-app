@@ -1,8 +1,0 @@
-{
-  "crons": [
-    {
-      "path": "/api/cron/homeowner-id-retention",
-      "schedule": "0 * * * *"
-    }
-  ]
-}
