@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import {
   canInviteGuests,
+  decryptPassToken,
+  encryptPassToken,
   hashPassToken,
   passDisplayStatus,
   phonePattern,
@@ -26,6 +28,19 @@ describe("visitor pass helpers", () => {
     const hash = hashPassToken("secret-token");
     expect(hash).toMatch(/^[a-f0-9]{64}$/);
     expect(hash).not.toContain("secret-token");
+  });
+
+  it("round-trips encrypted bearer tokens without storing plaintext", () => {
+    const previousKey = process.env.VISITOR_PASS_ENCRYPTION_KEY;
+    process.env.VISITOR_PASS_ENCRYPTION_KEY = Buffer.alloc(32, 7).toString("base64url");
+    try {
+      const encrypted = encryptPassToken("secret-token");
+      expect(encrypted).not.toContain("secret-token");
+      expect(decryptPassToken(encrypted)).toBe("secret-token");
+    } finally {
+      if (previousKey) process.env.VISITOR_PASS_ENCRYPTION_KEY = previousKey;
+      else delete process.env.VISITOR_PASS_ENCRYPTION_KEY;
+    }
   });
 
   it("creates a 24-hour window", () => {

@@ -24,7 +24,7 @@ export default async function NewVisitorPage() {
       <Card>
         <CardHeader>
           <CardTitle>Invite a guest</CardTitle>
-          <CardDescription>Create a time-limited QR pass to share with your visitor.</CardDescription>
+          <CardDescription>Create a time-limited visitor link to share with your guest.</CardDescription>
         </CardHeader>
         <CardContent><VisitorForm requestKey={randomUUID()} /></CardContent>
       </Card>

@@ -34,7 +34,7 @@ export default async function VisitorsPage({ searchParams }: { searchParams: Pro
         <div><h1 className="text-3xl font-semibold tracking-tight">Guest passes</h1><p className="mt-2 text-sm text-muted-foreground">Create and manage access for your visitors.</p></div>
         <Button asChild><Link href="/visitors/new"><Plus className="size-4" /> Invite <LinkStatus label="Opening guest form" /></Link></Button>
       </div>
-      {query.duplicate ? <p className="mb-4 rounded-lg bg-amber-50 p-3 text-sm text-amber-900" role="status">That guest pass was already created. Open it below to view or replace its QR code.</p> : null}
+      {query.duplicate ? <p className="mb-4 rounded-lg bg-amber-50 p-3 text-sm text-amber-900" role="status">That guest pass was already created. Open it below to view and share its link.</p> : null}
       {passes.length ? (
         <div className="space-y-3">
           {passes.map((pass) => {

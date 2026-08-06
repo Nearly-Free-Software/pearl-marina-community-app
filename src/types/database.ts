@@ -154,6 +154,12 @@ export type Database = {
         Update: Partial<Pick<VisitorPass, "token_hash" | "revoked_at">>;
         Relationships: [];
       };
+      visitor_pass_tokens: {
+        Row: { visitor_pass_id: string; encrypted_token: string; created_at: string };
+        Insert: { visitor_pass_id: string; encrypted_token: string; created_at?: string };
+        Update: never;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {

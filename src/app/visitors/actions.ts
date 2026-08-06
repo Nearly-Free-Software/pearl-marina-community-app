@@ -4,10 +4,12 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { getAuthenticatedProfile } from "@/lib/auth";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import {
   canInviteGuests,
   createPassToken,
+  encryptPassToken,
   hashPassToken,
   phonePattern,
   resolveValidityWindow,
@@ -79,24 +81,26 @@ export async function createVisitorPass(
     });
     return { error: "We could not create this pass. Please try again." };
   }
+  const admin = createAdminClient();
+  let encryptedToken: string;
+  try {
+    encryptedToken = encryptPassToken(token);
+  } catch (encryptionError) {
+    await admin.from("visitor_passes").delete().eq("id", data.id);
+    console.error("[visitor-pass:create] Link encryption failed", { error: encryptionError instanceof Error ? encryptionError.name : "unknown" });
+    return { error: "We could not create this pass. Please try again." };
+  }
+  const { error: tokenError } = await admin.from("visitor_pass_tokens").insert({
+    visitor_pass_id: data.id,
+    encrypted_token: encryptedToken,
+  });
+  if (tokenError) {
+    await admin.from("visitor_passes").delete().eq("id", data.id);
+    console.error("[visitor-pass:create] Encrypted link storage failed", { code: tokenError.code });
+    return { error: "We could not create this pass. Please try again." };
+  }
   revalidatePath("/visitors");
   redirect(`/visitors/${data.id}?token=${encodeURIComponent(token)}&created=1`);
-}
-
-export async function replaceVisitorPassToken(passId: string) {
-  await getAuthenticatedProfile();
-  const token = createPassToken();
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("visitor_passes")
-    .update({ token_hash: hashPassToken(token), revoked_at: null })
-    .eq("id", passId)
-    .select("id")
-    .maybeSingle();
-
-  if (!data) redirect(`/visitors/${passId}?error=replace_failed`);
-  revalidatePath(`/visitors/${passId}`);
-  redirect(`/visitors/${passId}?token=${encodeURIComponent(token)}`);
 }
 
 export async function revokeVisitorPass(passId: string) {

@@ -329,6 +329,20 @@ export type Database = {
           },
         ]
       }
+      visitor_pass_tokens: {
+        Row: {
+          created_at: string
+          encrypted_token: string
+          visitor_pass_id: string
+        }
+        Insert: {
+          created_at?: string
+          encrypted_token: string
+          visitor_pass_id: string
+        }
+        Update: never
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

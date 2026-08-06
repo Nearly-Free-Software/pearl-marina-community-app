@@ -8,6 +8,7 @@ const requestKeyMigration = readFileSync(join(process.cwd(), "supabase/migration
 const homeownerMigration = readFileSync(join(process.cwd(), "supabase/migrations/20260724142031_homeowner_applications.sql"), "utf8");
 const managerVisitorMigration = readFileSync(join(process.cwd(), "supabase/migrations/20260804134454_allow_community_managers_visitor_passes.sql"), "utf8");
 const homeownerIdMigration = readFileSync(join(process.cwd(), "supabase/migrations/20260804180613_homeowner_id_verification.sql"), "utf8");
+const visitorLinkMigration = readFileSync(join(process.cwd(), "supabase/migrations/20260806124724_store_encrypted_visitor_pass_links.sql"), "utf8");
 
 describe("profiles migration security", () => {
   it("enables RLS and limits browser updates to display_name", () => {
@@ -91,6 +92,14 @@ describe("community manager visitor policy migration", () => {
   it("retains ownership and active-account checks", () => {
     expect(managerVisitorMigration.match(/resident_id = \(select auth\.uid\(\)\)/g)?.length).toBe(4);
     expect(managerVisitorMigration.match(/profiles\.access_status = 'active'/g)?.length).toBe(4);
+  });
+});
+
+describe("persistent visitor link migration security", () => {
+  it("keeps encrypted bearer tokens out of browser roles", () => {
+    expect(visitorLinkMigration).toContain("alter table public.visitor_pass_tokens enable row level security");
+    expect(visitorLinkMigration).toContain("revoke all on table public.visitor_pass_tokens from anon, authenticated");
+    expect(visitorLinkMigration).toContain("grant all on table public.visitor_pass_tokens to service_role");
   });
 });
 

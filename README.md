@@ -38,6 +38,7 @@ For hosted projects, configure:
 - A custom SMTP provider before the wider community pilot
 - `SUPABASE_SECRET_KEY` as a server-only Vercel variable for application submission and automatic registration
 - `SUPABASE_SERVICE_ROLE_KEY` as a server-only, sensitive Vercel variable for Supabase Storage administration
+- `VISITOR_PASS_ENCRYPTION_KEY` as a server-only, sensitive 32-byte base64url key in Vercel Production and Preview
 
 Keep **Allow new users to sign up** disabled in both general Auth and Email provider settings. Invitations through the administrator API/dashboard remain the account-creation path.
 
@@ -103,21 +104,21 @@ For an incident, first set `HOMEOWNER_ID_REQUIREMENT_ENABLED=false` and redeploy
 
 ## Guest passes
 
-Residents, homeowners, and administrators can open **Guest access** from the dashboard, enter a visitor's name and international phone number, and choose access for today, 24 hours, or a custom period. The resulting QR code can be shared through the device share sheet, copied as a link, or downloaded.
+Residents, homeowners, and administrators can open **Guest access** from the dashboard, enter a visitor's name and international phone number, and choose access for today, 24 hours, or a custom period. The resulting live visitor link can be shared through the device share sheet or copied for WhatsApp, email, or another messaging app.
 
-Security personnel do not need an account. Any phone camera or QR scanner can open the public `/visit/<token>` page and see the live pass status, guest name, inviting resident, and validity period.
+Security personnel do not need an account. Opening the visitor link loads the public `/visit/<token>` page, which shows the live pass status, guest name, inviting resident, and validity period.
 
 Privacy and security properties:
 
-- The QR contains a 256-bit random bearer token rather than personal information.
+- The link contains a 256-bit random bearer token rather than personal information.
 - Only the SHA-256 token hash is stored in Postgres.
 - Guest phone numbers are visible only to the inviting resident through authenticated, owner-scoped access.
 - Unknown codes reveal no personal information.
 - Expired and revoked passes stop revealing names after 24 hours.
 - Verification pages opt out of indexing, previews, caching, and referrer sharing.
-- Replacing a QR immediately invalidates the previous code; revocation is checked live.
+- Revocation is checked live, so the shared link stops working immediately when a resident revokes the pass.
 
-Anyone possessing a valid QR can view its limited verification details. Treat it like a temporary access pass and revoke it if it is shared with the wrong person.
+Anyone possessing a valid link can view its limited verification details. Treat it like a temporary access pass and revoke it if it is shared with the wrong person.
 
 ## Supabase environments and migrations
 
@@ -167,7 +168,7 @@ npm run test:e2e
 
 With local Supabase running, also run `npm run db:test` and manually verify an invited-user login, expired-link handling, session refresh, sign-out, and disabled-user rejection.
 
-For guest access, verify pass creation, native sharing or copy fallback, scanning on a second phone, immediate revocation, expiry behavior, and that invalid codes reveal no names or phone numbers.
+For guest access, verify pass creation, native sharing or copy fallback, reopening the same pass and sharing the retained link, opening the link on a second phone, immediate revocation, expiry behavior, and that invalid links reveal no names or phone numbers.
 
 ## Troubleshooting
 

@@ -1,4 +1,4 @@
-import { createHash, randomBytes } from "node:crypto";
+import { createCipheriv, createDecipheriv, createHash, randomBytes } from "node:crypto";
 
 import type { CommunityRole, VisitorPassVerification } from "@/types/database";
 
@@ -17,6 +17,37 @@ export function createPassToken() {
 
 export function hashPassToken(token: string) {
   return createHash("sha256").update(token).digest("hex");
+}
+
+function visitorPassEncryptionKey() {
+  const encoded = process.env.VISITOR_PASS_ENCRYPTION_KEY;
+  if (!encoded) throw new Error("Missing server environment variable: VISITOR_PASS_ENCRYPTION_KEY");
+  const key = Buffer.from(encoded, "base64url");
+  if (key.length !== 32) throw new Error("VISITOR_PASS_ENCRYPTION_KEY must decode to 32 bytes");
+  return key;
+}
+
+export function encryptPassToken(token: string) {
+  const iv = randomBytes(12);
+  const cipher = createCipheriv("aes-256-gcm", visitorPassEncryptionKey(), iv);
+  const ciphertext = Buffer.concat([cipher.update(token, "utf8"), cipher.final()]);
+  const authTag = cipher.getAuthTag();
+  return [iv, authTag, ciphertext].map((part) => part.toString("base64url")).join(".");
+}
+
+export function decryptPassToken(payload: string) {
+  const [encodedIv, encodedAuthTag, encodedCiphertext] = payload.split(".");
+  if (!encodedIv || !encodedAuthTag || !encodedCiphertext) throw new Error("Invalid encrypted visitor pass token");
+  const decipher = createDecipheriv(
+    "aes-256-gcm",
+    visitorPassEncryptionKey(),
+    Buffer.from(encodedIv, "base64url"),
+  );
+  decipher.setAuthTag(Buffer.from(encodedAuthTag, "base64url"));
+  return Buffer.concat([
+    decipher.update(Buffer.from(encodedCiphertext, "base64url")),
+    decipher.final(),
+  ]).toString("utf8");
 }
 
 function parseKampalaDateTime(value: string) {
