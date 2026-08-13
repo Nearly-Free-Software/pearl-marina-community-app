@@ -80,7 +80,7 @@ Rejected applicants may submit a corrected application later. Rejection reasons 
 
 The optional homeowner ID workflow is controlled by the server-only `HOMEOWNER_ID_REQUIREMENT_ENABLED` variable. Keep it `false` until the privacy/legal review, PDPO processing-registration update, automated name-suggestion setup, and staged end-to-end test are complete. Existing applications remain grandfathered and never become ID-required.
 
-When enabled, an applicant uploads one JPEG, PNG, or WebP photo. The browser rotates it, resizes the longest edge to at most 2,000 pixels, re-encodes it as JPEG (which removes the original metadata), and limits it to 1.5 MB. It uploads directly to the private `homeowner-identification` bucket using a path-specific signed token. Google Vision Text Detection runs synchronously and only the resulting status and suggested name are stored; raw OCR text and ID numbers are not retained.
+When enabled, an applicant may upload one JPEG, PNG, or WebP photo. An ID is required when the applicant uses a new or different email instead of the email PMEL has on file; applicants using their email on file may submit without one. The browser rotates an uploaded image, resizes the longest edge to at most 2,000 pixels, re-encodes it as JPEG (which removes the original metadata), and limits it to 1.5 MB. It uploads directly to the private `homeowner-identification` bucket using a path-specific signed token. Google Vision Text Detection runs synchronously and only the resulting status and suggested name are stored; raw OCR text and ID numbers are not retained.
 
 Required server-only variables:
 
@@ -90,7 +90,7 @@ Required server-only variables:
 
 Create the two application secrets with a cryptographically secure generator such as `openssl rand -base64 48`. Never put these values in a `NEXT_PUBLIC_` variable. Enable Cloud Vision in a dedicated Google Cloud project, restrict the API key to `vision.googleapis.com`, set a conservative daily quota and billing-budget alerts, and rotate the key immediately if it may have been exposed.
 
-Only active community managers can open the on-demand five-minute ID link. Each access is recorded in `homeowner_id_access_log`. Managers must inspect the image and check **I compared the applicant’s name with the ID** before approval. Audit access in the Supabase SQL editor with a restricted, trusted database account; do not export applicant data unnecessarily:
+Only active community managers can open the on-demand five-minute ID link. Each access is recorded in `homeowner_id_access_log`. For ID-backed applications, managers must inspect the image and check **I compared the applicant’s name with the ID** before approval. For applications without ID, managers must check **I confirmed this email matches the email PMEL has on file**. If the email is new or different and no ID was supplied, reject the application and ask the homeowner to reapply with ID. Audit access in the Supabase SQL editor with a restricted, trusted database account; do not export applicant data unnecessarily:
 
 ```sql
 select application_id, manager_id, accessed_at

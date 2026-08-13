@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 
 import { validateApplication } from "@/lib/homeowner-applications";
 import {
+  classifyIdDraftCredentials,
   draftSecretMatches,
   HOMEOWNER_ID_PRIVACY_VERSION,
   isIdRequirementEnabled,
@@ -24,12 +25,18 @@ export async function submitHomeownerApplication(formData: FormData) {
     .maybeSingle();
 
   if (!existing) {
-    const idRequired = isIdRequirementEnabled();
+    const draftId = String(formData.get("id_draft_id") ?? "");
+    const draftSecret = String(formData.get("id_draft_secret") ?? "");
+    const draftCredentials = classifyIdDraftCredentials(draftId, draftSecret);
     let idFields = {};
     let consumedDraftId: string | null = null;
-    if (idRequired) {
-      const draftId = String(formData.get("id_draft_id") ?? "");
-      const draftSecret = String(formData.get("id_draft_secret") ?? "");
+    if (draftCredentials === "incomplete") {
+      redirect("/signup?error=Upload+a+valid+ID+and+confirm+the+privacy+notice.");
+    }
+    if (draftCredentials === "complete") {
+      if (!isIdRequirementEnabled()) {
+        redirect("/signup?error=Upload+a+valid+ID+and+confirm+the+privacy+notice.");
+      }
       const privacyVersion = String(formData.get("privacy_acknowledged") ?? "");
       const { data: draft } = await supabase.from("homeowner_id_upload_drafts").select("*").eq("id", draftId).maybeSingle();
       if (!draft || draft.email !== application.email || draft.consumed_at || !draft.processed_at

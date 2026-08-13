@@ -15,9 +15,15 @@ test("homeowners can open a complete access application form", async ({ page }) 
   await expect(page.getByRole("heading", { name: /apply for homeowner access/i })).toBeVisible();
   await expect(page.getByLabel("Full name")).toBeVisible();
   await expect(page.getByLabel("Email address")).toBeVisible();
+  const idUpload = page.getByLabel(/Government-issued photo ID/);
+  if (await idUpload.count()) {
+    await expect(page.getByText(/new or different email address, include a government-issued photo ID/i)).toBeVisible();
+    await expect(idUpload).not.toHaveAttribute("required", "");
+    await expect(page.getByRole("checkbox", { name: /ID privacy notice/ })).toHaveCount(0);
+  }
   await expect(page.getByLabel("Phone number")).toBeVisible();
   await expect(page.getByLabel("Community")).toContainText("Bella Vista Apartments");
-  await expect(page.getByLabel("Community")).toContainText("Kingswood Homes");
+  await expect(page.getByLabel("Community")).toContainText("Kingswood Park");
   await expect(page.getByLabel("Unit number")).toBeVisible();
-  await expect(page.getByRole("button", { name: "Submit application" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Submit application" })).toBeEnabled();
 });

@@ -34,6 +34,8 @@ export default async function ApplicationsPage({
     ? "The account was approved, but its email could not be sent. Use Retry email below."
     : params.error === "id_verification_required"
       ? "Open the government ID and confirm that you compared its name before approval."
+    : params.error === "email_verification_required"
+      ? "Confirm that the applicant’s email matches the email PMEL has on file before approval."
     : params.error
       ? "That action could not be completed. Please try again."
       : null;
@@ -69,9 +71,9 @@ export default async function ApplicationsPage({
                       </dl>
                       <Button asChild variant="outline" className="w-full sm:w-auto"><a href={`/api/dashboard/applications/${application.id}/government-id`} target="_blank" rel="noreferrer"><ExternalLink className="size-4" />View government ID (5 minutes)</a></Button>
                     </div>
-                  ) : <p className="rounded-lg bg-secondary/60 p-3 text-sm text-muted-foreground">Submitted before government ID verification was required.</p>}
+                  ) : <p className="rounded-lg bg-amber-50 p-3 text-sm text-amber-900">No government ID provided. Verify that this email matches the email PMEL has on file before approving.</p>}
                   <div className="grid gap-3 sm:grid-cols-2">
-                    <ConfirmForm action={approveHomeownerApplication.bind(null, application.id)} message={`Approve and register ${application.full_name}?`} className="space-y-3">{application.id_required ? <label className="flex items-start gap-3 rounded-lg border p-3 text-sm"><input type="checkbox" name="id_compared" value="yes" className="mt-0.5 size-5 shrink-0 accent-primary" required /><span>I compared the applicant’s name with the ID.</span></label> : null}<PendingButton className="w-full" pendingLabel="Registering…"><CheckCircle2 className="size-4" />Approve and register</PendingButton></ConfirmForm>
+                    <ConfirmForm action={approveHomeownerApplication.bind(null, application.id)} message={`Approve and register ${application.full_name}?`} className="space-y-3">{application.id_required ? <label className="flex items-start gap-3 rounded-lg border p-3 text-sm"><input type="checkbox" name="id_compared" value="yes" className="mt-0.5 size-5 shrink-0 accent-primary" required /><span>I compared the applicant’s name with the ID.</span></label> : <label className="flex items-start gap-3 rounded-lg border p-3 text-sm"><input type="checkbox" name="email_on_file_confirmed" value="yes" className="mt-0.5 size-5 shrink-0 accent-primary" required /><span>I confirmed this email matches the email PMEL has on file.</span></label>}<PendingButton className="w-full" pendingLabel="Registering…"><CheckCircle2 className="size-4" />Approve and register</PendingButton></ConfirmForm>
                     <ConfirmForm action={rejectHomeownerApplication.bind(null, application.id)} message={`Reject ${application.full_name}'s application?`} className="space-y-2"><Input name="reason" maxLength={500} placeholder="Internal reason (optional)" aria-label="Internal rejection reason" /><PendingButton className="w-full" variant="outline" pendingLabel="Rejecting…"><XCircle className="size-4" />Reject</PendingButton></ConfirmForm>
                   </div>
                 </CardContent>

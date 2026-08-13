@@ -6,7 +6,7 @@ import { useState } from "react";
 
 import { Input } from "@/components/ui/input";
 import { PendingButton } from "@/components/ui/pending-button";
-import { HOMEOWNER_ID_MAX_BYTES, HOMEOWNER_ID_MAX_DIMENSION, HOMEOWNER_ID_PRIVACY_VERSION } from "@/lib/homeowner-identification";
+import { HOMEOWNER_ID_MAX_BYTES, HOMEOWNER_ID_MAX_DIMENSION, HOMEOWNER_ID_PRIVACY_VERSION } from "@/lib/homeowner-identification-shared";
 import { subCommunities } from "@/lib/homeowner-applications";
 import { submitHomeownerApplication } from "./actions";
 
@@ -39,12 +39,18 @@ export function IdSignupForm({ error, supabase: supabaseEnv }: {
   const [busy, setBusy] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
 
+  function clearDraft() {
+    setDraft(null);
+    setSuggestedName(null);
+    setOcrStatus(null);
+  }
+
   async function uploadId(file: File) {
     const normalizedEmail = email.trim();
     if (!normalizedEmail) return setUploadError("Enter your email address before uploading your ID.");
     setBusy(true);
     setUploadError(null);
-    setDraft(null);
+    clearDraft();
     try {
       const image = await prepareIdImage(file);
       const issue = await fetch("/api/signup/id/draft", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ email: normalizedEmail }) });
@@ -69,24 +75,28 @@ export function IdSignupForm({ error, supabase: supabaseEnv }: {
 
   return (
     <form action={submitHomeownerApplication} className="space-y-4">
-      <div className="space-y-2"><label htmlFor="email" className="text-sm font-medium">Email address</label><Input id="email" name="email" type="email" autoComplete="email" inputMode="email" value={email} onChange={(event) => { setEmail(event.target.value); if (draft) setDraft(null); }} required /></div>
       <div className="space-y-2">
-        <label htmlFor="government_id" className="text-sm font-medium">Government-issued photo ID</label>
-        <Input id="government_id" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" disabled={busy} onChange={(event) => { const file = event.target.files?.[0]; if (file) void uploadId(file); }} required={!draft} />
-        <p className="text-xs leading-5 text-muted-foreground">Use one clear image showing your name and photograph. It is resized and stripped of image metadata before upload.</p>
+        <label htmlFor="email" className="text-sm font-medium">Email address</label>
+        <Input id="email" name="email" type="email" autoComplete="email" inputMode="email" value={email} onChange={(event) => { setEmail(event.target.value); if (draft) clearDraft(); }} required />
+        <p className="text-xs leading-5 text-muted-foreground">Use the email address PMEL has on file for you. If you are applying with a new or different email address, include a government-issued photo ID below.</p>
+      </div>
+      <div className="space-y-2">
+        <label htmlFor="government_id" className="text-sm font-medium">Government-issued photo ID <span className="font-normal text-muted-foreground">(required for a new or different email)</span></label>
+        <Input id="government_id" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" disabled={busy} onChange={(event) => { const file = event.target.files?.[0]; if (file) void uploadId(file); else clearDraft(); }} />
+        <p className="text-xs leading-5 text-muted-foreground">You may leave this blank when using the email PMEL already has on file. Uploaded images are resized and stripped of image metadata.</p>
         {busy ? <p className="text-sm text-primary" role="status">Preparing your ID and reading the name…</p> : null}
         {draft ? <p className="text-sm text-emerald-700" role="status">ID uploaded. Confirm the name below.</p> : null}
         {uploadError ? <p className="rounded-lg bg-red-50 p-3 text-sm text-red-800" role="alert">{uploadError}</p> : null}
       </div>
       <input type="hidden" name="id_draft_id" value={draft?.id ?? ""} />
       <input type="hidden" name="id_draft_secret" value={draft?.secret ?? ""} />
-      <div className="space-y-2"><label htmlFor="full_name" className="text-sm font-medium">Full name as shown on ID</label><Input id="full_name" name="full_name" autoComplete="name" maxLength={100} defaultValue={suggestedName ?? ""} key={suggestedName ?? ocrStatus ?? "name"} required disabled={!draft} />{ocrStatus === "name_found" ? <p className="text-xs text-muted-foreground">We suggested this from the image. Correct it if needed.</p> : draft ? <p className="text-xs text-amber-800">We could not confidently find the name. Enter it manually; a manager will compare it with the ID.</p> : null}</div>
+      <div className="space-y-2"><label htmlFor="full_name" className="text-sm font-medium">Full name</label><Input id="full_name" name="full_name" autoComplete="name" maxLength={100} defaultValue={suggestedName ?? ""} key={suggestedName ?? ocrStatus ?? "name"} required />{ocrStatus === "name_found" ? <p className="text-xs text-muted-foreground">We suggested this from the image. Correct it if needed.</p> : draft ? <p className="text-xs text-amber-800">We could not confidently find the name. Enter it manually; a manager will compare it with the ID.</p> : null}</div>
       <div className="space-y-2"><label htmlFor="phone" className="text-sm font-medium">Phone number</label><Input id="phone" name="phone" type="tel" autoComplete="tel" inputMode="tel" placeholder="+256…" required /><p className="text-xs text-muted-foreground">Include the country code.</p></div>
       <div className="space-y-2"><label htmlFor="sub_community" className="text-sm font-medium">Community</label><select id="sub_community" name="sub_community" className="flex h-12 w-full rounded-lg border border-input bg-background px-3 text-base outline-none focus-visible:ring-2 focus-visible:ring-ring sm:text-sm" defaultValue="" required><option value="" disabled>Select your community</option>{subCommunities.map((community) => <option key={community} value={community}>{community}</option>)}</select></div>
       <div className="space-y-2"><label htmlFor="unit_number" className="text-sm font-medium">Unit number</label><Input id="unit_number" name="unit_number" autoComplete="off" maxLength={32} required /></div>
-      <label className="flex items-start gap-3 rounded-lg border p-3 text-sm leading-6"><input type="checkbox" name="privacy_acknowledged" value={HOMEOWNER_ID_PRIVACY_VERSION} className="mt-1 size-5 shrink-0 accent-primary" required /><span>I have read the <Link href="/privacy/homeowner-id" target="_blank" className="font-medium text-primary underline">ID privacy notice</Link> and consent to this processing and retention.</span></label>
+      {draft ? <label className="flex items-start gap-3 rounded-lg border p-3 text-sm leading-6"><input type="checkbox" name="privacy_acknowledged" value={HOMEOWNER_ID_PRIVACY_VERSION} className="mt-1 size-5 shrink-0 accent-primary" required /><span>I have read the <Link href="/privacy/homeowner-id" target="_blank" className="font-medium text-primary underline">ID privacy notice</Link> and consent to this processing and retention.</span></label> : null}
       {error ? <p className="rounded-lg bg-red-50 p-3 text-sm text-red-800" role="alert">{error}</p> : null}
-      <PendingButton className="w-full" pendingLabel="Submitting application…" disabled={!draft || busy}>Submit application</PendingButton>
+      <PendingButton className="w-full" pendingLabel="Submitting application…" disabled={busy}>Submit application</PendingButton>
       <p className="text-center text-sm text-muted-foreground">Already approved? <Link href="/login" className="font-medium text-primary underline-offset-4 hover:underline">Sign in</Link></p>
     </form>
   );

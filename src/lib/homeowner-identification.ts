@@ -1,9 +1,12 @@
 import { createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 
+export {
+  HOMEOWNER_ID_MAX_BYTES,
+  HOMEOWNER_ID_MAX_DIMENSION,
+  HOMEOWNER_ID_PRIVACY_VERSION,
+} from "./homeowner-identification-shared";
+
 export const HOMEOWNER_ID_BUCKET = "homeowner-identification";
-export const HOMEOWNER_ID_MAX_BYTES = 1_572_864;
-export const HOMEOWNER_ID_MAX_DIMENSION = 2_000;
-export const HOMEOWNER_ID_PRIVACY_VERSION = "2026-08-06";
 export const HOMEOWNER_ID_DRAFT_HOURS = 24;
 
 const NAME_VALUE = /^[\p{L}][\p{L}'’.-]*(?:\s+[\p{L}][\p{L}'’.-]*){0,5}$/u;
@@ -13,6 +16,12 @@ export function isIdRequirementEnabled() {
   return process.env.HOMEOWNER_ID_REQUIREMENT_ENABLED === "true"
     && Boolean(process.env.GOOGLE_CLOUD_VISION_API_KEY)
     && Boolean(process.env.SIGNUP_RATE_LIMIT_SECRET);
+}
+
+export function classifyIdDraftCredentials(draftId: string, draftSecret: string) {
+  if (!draftId && !draftSecret) return "none" as const;
+  if (draftId && draftSecret) return "complete" as const;
+  return "incomplete" as const;
 }
 
 export function normalizeEmail(value: unknown) {

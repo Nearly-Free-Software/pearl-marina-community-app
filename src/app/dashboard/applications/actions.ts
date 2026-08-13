@@ -5,6 +5,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { getAuthenticatedProfile } from "@/lib/auth";
+import { approvalVerificationError } from "@/lib/homeowner-applications";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 async function requireManager() {
@@ -30,10 +31,14 @@ export async function approveHomeownerApplication(applicationId: string, formDat
   const { data: application } = await admin.from("homeowner_applications").select("*").eq("id", applicationId).maybeSingle();
   if (!application || application.status === "rejected") redirect("/dashboard/applications?error=not_available");
 
-  if (application.status === "pending" && application.id_required) {
-    if (formData?.get("id_compared") !== "yes" || !application.id_image_path || application.id_deleted_at) {
-      redirect("/dashboard/applications?error=id_verification_required");
-    }
+  if (application.status === "pending") {
+    const verificationError = approvalVerificationError({
+      idRequired: application.id_required,
+      idCompared: formData?.get("id_compared") === "yes",
+      emailOnFileConfirmed: formData?.get("email_on_file_confirmed") === "yes",
+      idImageAvailable: Boolean(application.id_image_path && !application.id_deleted_at),
+    });
+    if (verificationError) redirect(`/dashboard/applications?error=${verificationError}`);
   }
 
   const decisionAt = new Date().toISOString();

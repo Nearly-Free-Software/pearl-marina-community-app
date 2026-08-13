@@ -18,6 +18,22 @@ export type ApplicationInput = {
   unitNumber: string;
 };
 
+export function approvalVerificationError({
+  idRequired,
+  idCompared,
+  emailOnFileConfirmed,
+  idImageAvailable,
+}: {
+  idRequired: boolean;
+  idCompared: boolean;
+  emailOnFileConfirmed: boolean;
+  idImageAvailable: boolean;
+}) {
+  if (idRequired && (!idCompared || !idImageAvailable)) return "id_verification_required" as const;
+  if (!idRequired && !emailOnFileConfirmed) return "email_verification_required" as const;
+  return null;
+}
+
 export function validateApplication(formData: FormData):
   | { data: ApplicationInput; error?: never }
   | { data?: never; error: string } {

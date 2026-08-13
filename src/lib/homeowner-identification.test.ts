@@ -1,5 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { extractSuggestedName } from "./homeowner-identification";
+import { classifyIdDraftCredentials, extractSuggestedName } from "./homeowner-identification";
+
+describe("optional government ID drafts", () => {
+  it("distinguishes an omitted upload from complete and forged partial credentials", () => {
+    expect(classifyIdDraftCredentials("", "")).toBe("none");
+    expect(classifyIdDraftCredentials("draft-id", "draft-secret")).toBe("complete");
+    expect(classifyIdDraftCredentials("draft-id", "")).toBe("incomplete");
+    expect(classifyIdDraftCredentials("", "draft-secret")).toBe("incomplete");
+  });
+});
 
 describe("government ID name extraction", () => {
   it("extracts a full name printed after a label", () => {
