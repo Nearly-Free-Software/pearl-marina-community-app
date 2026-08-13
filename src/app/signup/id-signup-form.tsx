@@ -9,6 +9,7 @@ import { PendingButton } from "@/components/ui/pending-button";
 import { HOMEOWNER_ID_MAX_BYTES, HOMEOWNER_ID_MAX_DIMENSION, HOMEOWNER_ID_PRIVACY_VERSION } from "@/lib/homeowner-identification-shared";
 import { subCommunities } from "@/lib/homeowner-applications";
 import { submitHomeownerApplication } from "./actions";
+import { FieldRequirement, FormRequirementLegend } from "./field-requirement";
 
 async function prepareIdImage(file: File) {
   if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) throw new Error("Choose a JPEG, PNG, or WebP image.");
@@ -75,13 +76,14 @@ export function IdSignupForm({ error, supabase: supabaseEnv }: {
 
   return (
     <form action={submitHomeownerApplication} className="space-y-4">
+      <FormRequirementLegend />
       <div className="space-y-2">
-        <label htmlFor="email" className="text-sm font-medium">Email address</label>
+        <label htmlFor="email" className="text-sm font-medium">Email address<FieldRequirement kind="required" /></label>
         <Input id="email" name="email" type="email" autoComplete="email" inputMode="email" value={email} onChange={(event) => { setEmail(event.target.value); if (draft) clearDraft(); }} required />
         <p className="text-xs leading-5 text-muted-foreground">Use the email address PMEL has on file for you. If you are applying with a new or different email address, include a government-issued photo ID below.</p>
       </div>
       <div className="space-y-2">
-        <label htmlFor="government_id" className="text-sm font-medium">Government-issued photo ID <span className="font-normal text-muted-foreground">(required for a new or different email)</span></label>
+        <label htmlFor="government_id" className="text-sm font-medium">Government-issued photo ID<FieldRequirement kind="conditional" /></label>
         <Input id="government_id" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" disabled={busy} onChange={(event) => { const file = event.target.files?.[0]; if (file) void uploadId(file); else clearDraft(); }} />
         <p className="text-xs leading-5 text-muted-foreground">You may leave this blank when using the email PMEL already has on file. Uploaded images are resized and stripped of image metadata.</p>
         {busy ? <p className="text-sm text-primary" role="status">Preparing your ID and reading the name…</p> : null}
@@ -90,10 +92,10 @@ export function IdSignupForm({ error, supabase: supabaseEnv }: {
       </div>
       <input type="hidden" name="id_draft_id" value={draft?.id ?? ""} />
       <input type="hidden" name="id_draft_secret" value={draft?.secret ?? ""} />
-      <div className="space-y-2"><label htmlFor="full_name" className="text-sm font-medium">Full name</label><Input id="full_name" name="full_name" autoComplete="name" maxLength={100} defaultValue={suggestedName ?? ""} key={suggestedName ?? ocrStatus ?? "name"} required />{ocrStatus === "name_found" ? <p className="text-xs text-muted-foreground">We suggested this from the image. Correct it if needed.</p> : draft ? <p className="text-xs text-amber-800">We could not confidently find the name. Enter it manually; a manager will compare it with the ID.</p> : null}</div>
-      <div className="space-y-2"><label htmlFor="phone" className="text-sm font-medium">Phone number</label><Input id="phone" name="phone" type="tel" autoComplete="tel" inputMode="tel" placeholder="+256…" required /><p className="text-xs text-muted-foreground">Include the country code.</p></div>
-      <div className="space-y-2"><label htmlFor="sub_community" className="text-sm font-medium">Community</label><select id="sub_community" name="sub_community" className="flex h-12 w-full rounded-lg border border-input bg-background px-3 text-base outline-none focus-visible:ring-2 focus-visible:ring-ring sm:text-sm" defaultValue="" required><option value="" disabled>Select your community</option>{subCommunities.map((community) => <option key={community} value={community}>{community}</option>)}</select></div>
-      <div className="space-y-2"><label htmlFor="unit_number" className="text-sm font-medium">Unit number</label><Input id="unit_number" name="unit_number" autoComplete="off" maxLength={32} required /></div>
+      <div className="space-y-2"><label htmlFor="full_name" className="text-sm font-medium">Full name<FieldRequirement kind="required" /></label><Input id="full_name" name="full_name" autoComplete="name" maxLength={100} defaultValue={suggestedName ?? ""} key={suggestedName ?? ocrStatus ?? "name"} required />{ocrStatus === "name_found" ? <p className="text-xs text-muted-foreground">We suggested this from the image. Correct it if needed.</p> : draft ? <p className="text-xs text-amber-800">We could not confidently find the name. Enter it manually; a manager will compare it with the ID.</p> : null}</div>
+      <div className="space-y-2"><label htmlFor="phone" className="text-sm font-medium">Phone number<FieldRequirement kind="required" /></label><Input id="phone" name="phone" type="tel" autoComplete="tel" inputMode="tel" placeholder="+256…" required /><p className="text-xs text-muted-foreground">Include the country code.</p></div>
+      <div className="space-y-2"><label htmlFor="sub_community" className="text-sm font-medium">Community<FieldRequirement kind="required" /></label><select id="sub_community" name="sub_community" className="flex h-12 w-full rounded-lg border border-input bg-background px-3 text-base outline-none focus-visible:ring-2 focus-visible:ring-ring sm:text-sm" defaultValue="" required><option value="" disabled>Select your community</option>{subCommunities.map((community) => <option key={community} value={community}>{community}</option>)}</select></div>
+      <div className="space-y-2"><label htmlFor="unit_number" className="text-sm font-medium">Unit number<FieldRequirement kind="required" /></label><Input id="unit_number" name="unit_number" autoComplete="off" maxLength={32} required /></div>
       {draft ? <label className="flex items-start gap-3 rounded-lg border p-3 text-sm leading-6"><input type="checkbox" name="privacy_acknowledged" value={HOMEOWNER_ID_PRIVACY_VERSION} className="mt-1 size-5 shrink-0 accent-primary" required /><span>I have read the <Link href="/privacy/homeowner-id" target="_blank" className="font-medium text-primary underline">ID privacy notice</Link> and consent to this processing and retention.</span></label> : null}
       {error ? <p className="rounded-lg bg-red-50 p-3 text-sm text-red-800" role="alert">{error}</p> : null}
       <PendingButton className="w-full" pendingLabel="Submitting application…" disabled={busy}>Submit application</PendingButton>

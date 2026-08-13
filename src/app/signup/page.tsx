@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { PendingButton } from "@/components/ui/pending-button";
 import { subCommunities } from "@/lib/homeowner-applications";
 import { submitHomeownerApplication } from "./actions";
+import { FieldRequirement, FormRequirementLegend } from "./field-requirement";
 import { IdSignupForm } from "./id-signup-form";
 import { isIdRequirementEnabled } from "@/lib/homeowner-identification";
 import { getSupabaseEnv } from "@/lib/supabase/env";
@@ -49,17 +50,18 @@ export default async function SignupPage({
               </div>
             ) : idRequired && supabase ? <IdSignupForm error={error} supabase={supabase} /> : (
               <form action={submitHomeownerApplication} className="space-y-4">
-                <div className="space-y-2"><label htmlFor="full_name" className="text-sm font-medium">Full name</label><Input id="full_name" name="full_name" autoComplete="name" maxLength={100} required /></div>
-                <div className="space-y-2"><label htmlFor="email" className="text-sm font-medium">Email address</label><Input id="email" name="email" type="email" autoComplete="email" inputMode="email" required /></div>
-                <div className="space-y-2"><label htmlFor="phone" className="text-sm font-medium">Phone number</label><Input id="phone" name="phone" type="tel" autoComplete="tel" inputMode="tel" placeholder="+256…" required /><p className="text-xs text-muted-foreground">Include the country code.</p></div>
+                <FormRequirementLegend />
+                <div className="space-y-2"><label htmlFor="full_name" className="text-sm font-medium">Full name<FieldRequirement kind="required" /></label><Input id="full_name" name="full_name" autoComplete="name" maxLength={100} required /></div>
+                <div className="space-y-2"><label htmlFor="email" className="text-sm font-medium">Email address<FieldRequirement kind="required" /></label><Input id="email" name="email" type="email" autoComplete="email" inputMode="email" required /></div>
+                <div className="space-y-2"><label htmlFor="phone" className="text-sm font-medium">Phone number<FieldRequirement kind="required" /></label><Input id="phone" name="phone" type="tel" autoComplete="tel" inputMode="tel" placeholder="+256…" required /><p className="text-xs text-muted-foreground">Include the country code.</p></div>
                 <div className="space-y-2">
-                  <label htmlFor="sub_community" className="text-sm font-medium">Community</label>
+                  <label htmlFor="sub_community" className="text-sm font-medium">Community<FieldRequirement kind="required" /></label>
                   <select id="sub_community" name="sub_community" className="flex h-12 w-full rounded-lg border border-input bg-background px-3 text-base outline-none focus-visible:ring-2 focus-visible:ring-ring sm:text-sm" defaultValue="" required>
                     <option value="" disabled>Select your community</option>
                     {subCommunities.map((community) => <option key={community} value={community}>{community}</option>)}
                   </select>
                 </div>
-                <div className="space-y-2"><label htmlFor="unit_number" className="text-sm font-medium">Unit number</label><Input id="unit_number" name="unit_number" autoComplete="off" maxLength={32} required /></div>
+                <div className="space-y-2"><label htmlFor="unit_number" className="text-sm font-medium">Unit number<FieldRequirement kind="required" /></label><Input id="unit_number" name="unit_number" autoComplete="off" maxLength={32} required /></div>
                 {error ? <p className="rounded-lg bg-red-50 p-3 text-sm text-red-800" role="alert">{error}</p> : null}
                 <PendingButton className="w-full" pendingLabel="Submitting application…">Submit application</PendingButton>
                 <p className="text-center text-sm text-muted-foreground">Already approved? <Link href="/login" className="font-medium text-primary underline-offset-4 hover:underline">Sign in</Link></p>
