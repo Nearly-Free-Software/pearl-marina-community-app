@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { approvalVerificationError, subCommunities, validateApplication, validateManagerPropertyDetails } from "./homeowner-applications";
+import { approvalVerificationError, homeownerApprovalRedirect, subCommunities, validateApplication, validateManagerPropertyDetails } from "./homeowner-applications";
 
 function applicationForm(overrides: Record<string, string> = {}) {
   const form = new FormData();
@@ -90,5 +90,12 @@ describe("manager property corrections", () => {
     form.set("sub_community", "Kingswood Park");
     form.set("unit_number", "x".repeat(33));
     expect(validateManagerPropertyDetails(form)).toHaveProperty("error");
+  });
+});
+
+describe("approval email redirect", () => {
+  it("marks approval sign-in links without changing the authentication callback", () => {
+    expect(homeownerApprovalRedirect("https://app.pearlmarina.org"))
+      .toBe("https://app.pearlmarina.org/auth/confirm?source=approval");
   });
 });

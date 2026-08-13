@@ -9,6 +9,19 @@ const homeownerMigration = readFileSync(join(process.cwd(), "supabase/migrations
 const managerVisitorMigration = readFileSync(join(process.cwd(), "supabase/migrations/20260804134454_allow_community_managers_visitor_passes.sql"), "utf8");
 const homeownerIdMigration = readFileSync(join(process.cwd(), "supabase/migrations/20260804180613_homeowner_id_verification.sql"), "utf8");
 const visitorLinkMigration = readFileSync(join(process.cwd(), "supabase/migrations/20260806124724_store_encrypted_visitor_pass_links.sql"), "utf8");
+const supabaseConfig = readFileSync(join(process.cwd(), "supabase/config.toml"), "utf8");
+const magicLinkTemplate = readFileSync(join(process.cwd(), "supabase/templates/magic-link.html"), "utf8");
+
+describe("authentication email templates", () => {
+  it("uses approval wording only for approval-triggered magic links", () => {
+    expect(supabaseConfig).toContain("[auth.email.template.magic_link]");
+    expect(supabaseConfig).toContain('content_path = "./supabase/templates/magic-link.html"');
+    expect(magicLinkTemplate).toContain('eq .RedirectTo (printf "%s/auth/confirm?source=approval" .SiteURL)');
+    expect(magicLinkTemplate).toContain("Your account has been approved");
+    expect(magicLinkTemplate).toContain("Your secure sign-in link");
+    expect(magicLinkTemplate).toContain('href="{{ .ConfirmationURL }}"');
+  });
+});
 
 describe("profiles migration security", () => {
   it("enables RLS and limits browser updates to display_name", () => {

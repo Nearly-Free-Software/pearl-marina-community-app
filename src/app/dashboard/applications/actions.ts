@@ -5,7 +5,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { getAuthenticatedProfile } from "@/lib/auth";
-import { approvalVerificationError, validateManagerPropertyDetails } from "@/lib/homeowner-applications";
+import { approvalVerificationError, homeownerApprovalRedirect, validateManagerPropertyDetails } from "@/lib/homeowner-applications";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 async function requireManager() {
@@ -84,7 +84,7 @@ export async function approveHomeownerApplication(applicationId: string, formDat
     const origin = (await headers()).get("origin") ?? process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
     const { error } = await admin.auth.signInWithOtp({
       email: application.email,
-      options: { shouldCreateUser: false, emailRedirectTo: `${origin}/auth/confirm` },
+      options: { shouldCreateUser: false, emailRedirectTo: homeownerApprovalRedirect(origin) },
     });
     inviteError = error?.message ?? inviteError;
   }

@@ -10,6 +10,10 @@ export const subCommunities = [
 
 export const applicationPhonePattern = /^\+[1-9]\d{7,14}$/;
 
+export function homeownerApprovalRedirect(origin: string) {
+  return `${origin}/auth/confirm?source=approval`;
+}
+
 export type ApplicationInput = {
   fullName: string;
   email: string;

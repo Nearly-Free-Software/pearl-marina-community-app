@@ -72,7 +72,7 @@ set role = 'community_manager'
 where email = 'manager@example.com';
 ```
 
-An active community manager can open **Homeowner applications** from the dashboard. They verify ownership outside the app, then choose **Approve and register** or **Reject**. Approval creates or reuses exactly one Auth account, writes the approved property details to the homeowner profile, and sends a first sign-in email. If email delivery fails, the approved record remains available with a **Retry email** action.
+An active community manager can open **Homeowner applications** from the dashboard. They verify ownership outside the app, then choose **Approve and register** or **Reject**. Approval creates or reuses exactly one Auth account, writes the approved property details to the homeowner profile, and immediately sends an approval email with a secure sign-in link. Normal sign-in requests continue to use the generic wording in the shared conditional magic-link template. If email delivery fails, the approved record remains available with a **Retry email** action.
 
 Rejected applicants may submit a corrected application later. Rejection reasons are internal and visible only in the protected review data.
 
