@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { LinkStatus } from "@/components/ui/link-status";
 import { PendingButton } from "@/components/ui/pending-button";
 import { getAuthenticatedProfile } from "@/lib/auth";
+import { subCommunities } from "@/lib/homeowner-applications";
 import { createClient } from "@/lib/supabase/server";
 import { formatKampalaDateTime } from "@/lib/visitors";
 import { redirect } from "next/navigation";
@@ -36,6 +37,8 @@ export default async function ApplicationsPage({
       ? "Open the government ID and confirm that you compared its name before approval."
     : params.error === "email_verification_required"
       ? "Confirm that the applicant’s email matches the email PMEL has on file before approval."
+    : params.error === "property_details_invalid"
+      ? "Choose a valid community and enter a unit number of 32 characters or fewer."
     : params.error
       ? "That action could not be completed. Please try again."
       : null;
@@ -59,8 +62,6 @@ export default async function ApplicationsPage({
                   <dl className="grid gap-3 text-sm sm:grid-cols-2">
                     <div><dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Email</dt><dd className="mt-1 break-all">{application.email}</dd></div>
                     <div><dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Phone</dt><dd className="mt-1">{application.phone}</dd></div>
-                    <div><dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Community</dt><dd className="mt-1">{application.sub_community}</dd></div>
-                    <div><dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Unit</dt><dd className="mt-1">{application.unit_number}</dd></div>
                   </dl>
                   {application.id_required ? (
                     <div className="space-y-3 rounded-lg border bg-secondary/30 p-4">
@@ -73,7 +74,16 @@ export default async function ApplicationsPage({
                     </div>
                   ) : <p className="rounded-lg bg-amber-50 p-3 text-sm text-amber-900">No government ID provided. Verify that this email matches the email PMEL has on file before approving.</p>}
                   <div className="grid gap-3 sm:grid-cols-2">
-                    <ConfirmForm action={approveHomeownerApplication.bind(null, application.id)} message={`Approve and register ${application.full_name}?`} className="space-y-3">{application.id_required ? <label className="flex items-start gap-3 rounded-lg border p-3 text-sm"><input type="checkbox" name="id_compared" value="yes" className="mt-0.5 size-5 shrink-0 accent-primary" required /><span>I compared the applicant’s name with the ID.</span></label> : <label className="flex items-start gap-3 rounded-lg border p-3 text-sm"><input type="checkbox" name="email_on_file_confirmed" value="yes" className="mt-0.5 size-5 shrink-0 accent-primary" required /><span>I confirmed this email matches the email PMEL has on file.</span></label>}<PendingButton className="w-full" pendingLabel="Registering…"><CheckCircle2 className="size-4" />Approve and register</PendingButton></ConfirmForm>
+                    <ConfirmForm action={approveHomeownerApplication.bind(null, application.id)} message={`Approve and register ${application.full_name} with the community and unit shown?`} className="space-y-3">
+                      <div className="space-y-3 rounded-lg border bg-secondary/30 p-3">
+                        <p className="text-sm font-medium">Confirm property details</p>
+                        <div className="space-y-2"><label htmlFor={`sub_community_${application.id}`} className="text-sm font-medium">Community</label><select id={`sub_community_${application.id}`} name="sub_community" className="flex h-11 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring" defaultValue={application.sub_community} required>{subCommunities.map((community) => <option key={community} value={community}>{community}</option>)}</select></div>
+                        <div className="space-y-2"><label htmlFor={`unit_number_${application.id}`} className="text-sm font-medium">Unit number</label><Input id={`unit_number_${application.id}`} name="unit_number" defaultValue={application.unit_number} maxLength={32} required /></div>
+                        <p className="text-xs leading-5 text-muted-foreground">Correct either value if the homeowner mistyped it. These details will be saved to the approved account.</p>
+                      </div>
+                      {application.id_required ? <label className="flex items-start gap-3 rounded-lg border p-3 text-sm"><input type="checkbox" name="id_compared" value="yes" className="mt-0.5 size-5 shrink-0 accent-primary" required /><span>I compared the applicant’s name with the ID.</span></label> : <label className="flex items-start gap-3 rounded-lg border p-3 text-sm"><input type="checkbox" name="email_on_file_confirmed" value="yes" className="mt-0.5 size-5 shrink-0 accent-primary" required /><span>I confirmed this email matches the email PMEL has on file.</span></label>}
+                      <PendingButton className="w-full" pendingLabel="Registering…"><CheckCircle2 className="size-4" />Approve and register</PendingButton>
+                    </ConfirmForm>
                     <ConfirmForm action={rejectHomeownerApplication.bind(null, application.id)} message={`Reject ${application.full_name}'s application?`} className="space-y-2"><Input name="reason" maxLength={500} placeholder="Internal reason (optional)" aria-label="Internal rejection reason" /><PendingButton className="w-full" variant="outline" pendingLabel="Rejecting…"><XCircle className="size-4" />Reject</PendingButton></ConfirmForm>
                   </div>
                 </CardContent>

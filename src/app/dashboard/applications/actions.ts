@@ -5,7 +5,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { getAuthenticatedProfile } from "@/lib/auth";
-import { approvalVerificationError } from "@/lib/homeowner-applications";
+import { approvalVerificationError, validateManagerPropertyDetails } from "@/lib/homeowner-applications";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 async function requireManager() {
@@ -31,7 +31,14 @@ export async function approveHomeownerApplication(applicationId: string, formDat
   const { data: application } = await admin.from("homeowner_applications").select("*").eq("id", applicationId).maybeSingle();
   if (!application || application.status === "rejected") redirect("/dashboard/applications?error=not_available");
 
+  let approvedSubCommunity = application.sub_community;
+  let approvedUnitNumber = application.unit_number;
   if (application.status === "pending") {
+    if (!formData) redirect("/dashboard/applications?error=property_details_invalid");
+    const propertyDetails = validateManagerPropertyDetails(formData);
+    if (!propertyDetails.data) redirect("/dashboard/applications?error=property_details_invalid");
+    approvedSubCommunity = propertyDetails.data.subCommunity;
+    approvedUnitNumber = propertyDetails.data.unitNumber;
     const verificationError = approvalVerificationError({
       idRequired: application.id_required,
       idCompared: formData?.get("id_compared") === "yes",
@@ -49,6 +56,8 @@ export async function approveHomeownerApplication(applicationId: string, formDat
       reviewed_by: manager.id,
       rejection_reason: null,
       invitation_error: null,
+      sub_community: approvedSubCommunity,
+      unit_number: approvedUnitNumber,
       id_verified_at: application.id_required ? new Date().toISOString() : null,
       id_verified_by: application.id_required ? manager.id : null,
       id_delete_after: application.id_required ? decisionAt : null,
@@ -85,8 +94,8 @@ export async function approveHomeownerApplication(applicationId: string, formDat
       display_name: application.full_name,
       email: application.email,
       phone: application.phone,
-      sub_community: application.sub_community,
-      unit_number: application.unit_number,
+      sub_community: approvedSubCommunity,
+      unit_number: approvedUnitNumber,
       role: "homeowner",
       access_status: "active",
     }).eq("id", authUser.id);

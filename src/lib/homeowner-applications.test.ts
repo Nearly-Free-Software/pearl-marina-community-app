@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { approvalVerificationError, subCommunities, validateApplication } from "./homeowner-applications";
+import { approvalVerificationError, subCommunities, validateApplication, validateManagerPropertyDetails } from "./homeowner-applications";
 
 function applicationForm(overrides: Record<string, string> = {}) {
   const form = new FormData();
@@ -67,5 +67,28 @@ describe("homeowner approval verification", () => {
   it("does not approve an ID-backed application after its image is unavailable", () => {
     expect(approvalVerificationError({ idRequired: true, idCompared: true, emailOnFileConfirmed: false, idImageAvailable: false }))
       .toBe("id_verification_required");
+  });
+});
+
+describe("manager property corrections", () => {
+  it("normalizes a corrected unit and accepts a known community", () => {
+    const form = new FormData();
+    form.set("sub_community", "Riviera Townhouses");
+    form.set("unit_number", " RT   12 ");
+
+    expect(validateManagerPropertyDetails(form)).toEqual({
+      data: { subCommunity: "Riviera Townhouses", unitNumber: "RT 12" },
+    });
+  });
+
+  it("rejects unknown communities and invalid unit numbers", () => {
+    const form = new FormData();
+    form.set("sub_community", "Other");
+    form.set("unit_number", "");
+    expect(validateManagerPropertyDetails(form)).toHaveProperty("error");
+
+    form.set("sub_community", "Kingswood Park");
+    form.set("unit_number", "x".repeat(33));
+    expect(validateManagerPropertyDetails(form)).toHaveProperty("error");
   });
 });

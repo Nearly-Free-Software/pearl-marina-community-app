@@ -34,6 +34,18 @@ export function approvalVerificationError({
   return null;
 }
 
+export function validateManagerPropertyDetails(formData: FormData):
+  | { data: Pick<ApplicationInput, "subCommunity" | "unitNumber">; error?: never }
+  | { data?: never; error: string } {
+  const subCommunity = String(formData.get("sub_community") ?? "") as SubCommunity;
+  const unitNumber = String(formData.get("unit_number") ?? "").trim().replace(/\s+/g, " ");
+
+  if (!subCommunities.includes(subCommunity)) return { error: "Choose a valid Pearl Marina community." };
+  if (unitNumber.length < 1 || unitNumber.length > 32) return { error: "Enter a unit number of 32 characters or fewer." };
+
+  return { data: { subCommunity, unitNumber } };
+}
+
 export function validateApplication(formData: FormData):
   | { data: ApplicationInput; error?: never }
   | { data?: never; error: string } {
