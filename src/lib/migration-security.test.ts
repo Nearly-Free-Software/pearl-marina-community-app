@@ -9,6 +9,7 @@ const homeownerMigration = readFileSync(join(process.cwd(), "supabase/migrations
 const managerVisitorMigration = readFileSync(join(process.cwd(), "supabase/migrations/20260804134454_allow_community_managers_visitor_passes.sql"), "utf8");
 const homeownerIdMigration = readFileSync(join(process.cwd(), "supabase/migrations/20260804180613_homeowner_id_verification.sql"), "utf8");
 const visitorLinkMigration = readFileSync(join(process.cwd(), "supabase/migrations/20260806124724_store_encrypted_visitor_pass_links.sql"), "utf8");
+const accountDeletionMigration = readFileSync(join(process.cwd(), "supabase/migrations/20260819161524_self_service_account_deletion.sql"), "utf8");
 const supabaseConfig = readFileSync(join(process.cwd(), "supabase/config.toml"), "utf8");
 const magicLinkTemplate = readFileSync(join(process.cwd(), "supabase/templates/magic-link.html"), "utf8");
 
@@ -133,5 +134,28 @@ describe("homeowner identification migration security", () => {
   it("grandfathers existing applications and validates one-time token hashes", () => {
     expect(homeownerIdMigration).toContain("add column id_required boolean not null default false");
     expect(homeownerIdMigration).toContain("token_hash ~ '^[0-9a-f]{64}$'");
+  });
+});
+
+describe("account deletion migration privacy", () => {
+  it("anonymizes linked applications as part of profile deletion", () => {
+    expect(accountDeletionMigration).toContain("before delete on public.profiles");
+    expect(accountDeletionMigration).toContain("where auth_user_id = old.id");
+    for (const field of ["full_name", "email", "phone", "sub_community", "unit_number", "id_image_path"]) {
+      expect(accountDeletionMigration).toContain(`${field} = null`);
+    }
+  });
+
+  it("detaches deleted audit actors instead of blocking account deletion", () => {
+    expect(accountDeletionMigration).toContain("alter column manager_id drop not null");
+    expect(accountDeletionMigration.match(/on delete set null/g)?.length).toBeGreaterThanOrEqual(3);
+  });
+
+  it("does not expose the deletion trigger function to browser roles", () => {
+    expect(accountDeletionMigration).toContain("function private.anonymize_homeowner_application_for_deleted_profile");
+    expect(accountDeletionMigration).toContain("security definer");
+    expect(accountDeletionMigration).toContain("set search_path = ''");
+    expect(accountDeletionMigration).toContain("from public, anon, authenticated");
+    expect(accountDeletionMigration).not.toContain("grant execute");
   });
 });

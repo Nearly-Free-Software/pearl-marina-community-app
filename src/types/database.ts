@@ -23,11 +23,11 @@ export type Profile = {
 };
 export type HomeownerApplication = {
   id: string;
-  full_name: string;
-  email: string;
-  phone: string;
-  sub_community: SubCommunity;
-  unit_number: string;
+  full_name: string | null;
+  email: string | null;
+  phone: string | null;
+  sub_community: SubCommunity | null;
+  unit_number: string | null;
   status: HomeownerApplicationStatus;
   reviewed_at: string | null;
   reviewed_by: string | null;
@@ -49,6 +49,7 @@ export type HomeownerApplication = {
   id_delete_after: string | null;
   id_deleted_at: string | null;
   expired_at: string | null;
+  anonymized_at: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -110,6 +111,7 @@ export type Database = {
           id_delete_after?: string | null;
           id_deleted_at?: string | null;
           expired_at?: string | null;
+          anonymized_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -139,7 +141,7 @@ export type Database = {
         Relationships: [];
       };
       homeowner_id_access_log: {
-        Row: { id: number; application_id: string; manager_id: string; accessed_at: string };
+        Row: { id: number; application_id: string; manager_id: string | null; accessed_at: string };
         Insert: { id?: number; application_id: string; manager_id: string; accessed_at?: string };
         Update: never;
         Relationships: [];

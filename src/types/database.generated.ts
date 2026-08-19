@@ -36,11 +36,12 @@ export type Database = {
     Tables: {
       homeowner_applications: {
         Row: {
+          anonymized_at: string | null
           auth_user_id: string | null
           created_at: string
-          email: string
+          email: string | null
           expired_at: string | null
-          full_name: string
+          full_name: string | null
           id: string
           id_delete_after: string | null
           id_deleted_at: string | null
@@ -57,18 +58,19 @@ export type Database = {
           invitation_error: string | null
           invitation_sent_at: string | null
           name_confirmed_at: string | null
-          phone: string
+          phone: string | null
           privacy_accepted_at: string | null
           privacy_notice_version: string | null
           rejection_reason: string | null
           reviewed_at: string | null
           reviewed_by: string | null
           status: Database["public"]["Enums"]["homeowner_application_status"]
-          sub_community: Database["public"]["Enums"]["sub_community"]
-          unit_number: string
+          sub_community: Database["public"]["Enums"]["sub_community"] | null
+          unit_number: string | null
           updated_at: string
         }
         Insert: {
+          anonymized_at?: string | null
           auth_user_id?: string | null
           created_at?: string
           email: string
@@ -102,11 +104,12 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          anonymized_at?: string | null
           auth_user_id?: string | null
           created_at?: string
-          email?: string
+          email?: string | null
           expired_at?: string | null
-          full_name?: string
+          full_name?: string | null
           id?: string
           id_delete_after?: string | null
           id_deleted_at?: string | null
@@ -123,15 +126,15 @@ export type Database = {
           invitation_error?: string | null
           invitation_sent_at?: string | null
           name_confirmed_at?: string | null
-          phone?: string
+          phone?: string | null
           privacy_accepted_at?: string | null
           privacy_notice_version?: string | null
           rejection_reason?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           status?: Database["public"]["Enums"]["homeowner_application_status"]
-          sub_community?: Database["public"]["Enums"]["sub_community"]
-          unit_number?: string
+          sub_community?: Database["public"]["Enums"]["sub_community"] | null
+          unit_number?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -141,7 +144,7 @@ export type Database = {
           accessed_at: string
           application_id: string
           id: number
-          manager_id: string
+          manager_id: string | null
         }
         Insert: {
           accessed_at?: string
@@ -153,7 +156,7 @@ export type Database = {
           accessed_at?: string
           application_id?: string
           id?: never
-          manager_id?: string
+          manager_id?: string | null
         }
         Relationships: [
           {

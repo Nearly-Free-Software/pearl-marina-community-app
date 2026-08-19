@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { getAuthenticatedProfile, roleLabels } from "@/lib/auth";
 import { signOut } from "@/app/login/actions";
 import { canInviteGuests } from "@/lib/visitors";
+import { DeleteAccountForm } from "./delete-account-form";
 
 export const dynamic = "force-dynamic";
 
@@ -29,6 +30,7 @@ export default async function DashboardPage() {
           {profile.role === "community_manager" ? (
             <Card><CardHeader><div className="mb-2 grid size-10 place-items-center rounded-full bg-secondary"><ClipboardCheck className="size-5" /></div><CardTitle>Homeowner applications</CardTitle><CardDescription>Review and activate homeowner access requests.</CardDescription></CardHeader><CardContent><Button asChild className="w-full"><Link href="/dashboard/applications">Review applications <LinkStatus label="Opening applications" /></Link></Button></CardContent></Card>
           ) : null}
+          <Card className="border-red-200 sm:col-span-2"><CardHeader><CardTitle className="text-red-800">Delete account</CardTitle><CardDescription>This permanently removes your account and revokes every visitor pass you created. This cannot be undone.</CardDescription></CardHeader><CardContent>{profile.role === "admin" || profile.role === "community_manager" ? <p className="rounded-lg bg-amber-50 p-4 text-sm leading-6 text-amber-900">Administrator and community manager accounts must be removed by a trusted system administrator. Contact the system administrator for assistance.</p> : <DeleteAccountForm email={profile.email} />}</CardContent></Card>
         </div>
       </div>
     </main>

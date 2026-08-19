@@ -11,7 +11,7 @@ import { requestMagicLink } from "./actions";
 
 export const dynamic = "force-dynamic";
 
-export default async function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string; sent?: string }> }) {
+export default async function LoginPage({ searchParams }: { searchParams: Promise<{ account_deleted?: string; error?: string; sent?: string }> }) {
   const params = await searchParams;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -32,7 +32,9 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
             <CardDescription>Use your approved community email address. We will send you a secure sign-in link.</CardDescription>
           </CardHeader>
           <CardContent>
-            {params.sent ? (
+            {params.account_deleted ? (
+              <div className="rounded-lg border bg-secondary/60 p-4" role="status"><CheckCircle2 className="mb-3 size-6 text-primary" /><p className="font-medium">Account deleted</p><p className="mt-1 text-sm leading-6 text-muted-foreground">Your account and visitor passes have been permanently removed.</p></div>
+            ) : params.sent ? (
               <div className="rounded-lg border bg-secondary/60 p-4" role="status"><CheckCircle2 className="mb-3 size-6 text-primary" /><p className="font-medium">Check your email</p><p className="mt-1 text-sm leading-6 text-muted-foreground">If this address has community access, a sign-in link is on its way.</p></div>
             ) : (
               <form action={requestMagicLink} className="space-y-4">

@@ -62,6 +62,12 @@ where email = 'person@example.com';
 
 These operations require a trusted dashboard/database administrator and are intentionally unavailable to browser clients.
 
+### Account deletion
+
+Homeowners, residents, and service providers can permanently delete their own accounts from the dashboard by confirming their account email. Deletion revokes all sessions and removes the profile, visitor passes, and stored visitor links. A linked homeowner application remains only as anonymized workflow history; its direct personal details and identity-verification metadata are erased.
+
+Administrator and community manager accounts must be removed by a trusted system administrator so privileged access is transferred deliberately. Before deleting either role in **Supabase Dashboard → Authentication → Users**, confirm that another trusted privileged account remains. Use the same deletion path so reviewer and ID-access audit references are detached while timestamps remain. If the user has a linked homeowner application with an identification image, remove the object from the private `homeowner-identification` bucket first; do not manually delete only the profile row.
+
 ### Establish a community manager
 
 After the person already has an invited account, a trusted database administrator assigns the role:

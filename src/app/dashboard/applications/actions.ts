@@ -29,7 +29,7 @@ export async function approveHomeownerApplication(applicationId: string, formDat
   const manager = await requireManager();
   const admin = createAdminClient();
   const { data: application } = await admin.from("homeowner_applications").select("*").eq("id", applicationId).maybeSingle();
-  if (!application || application.status === "rejected") redirect("/dashboard/applications?error=not_available");
+  if (!application || application.status === "rejected" || application.anonymized_at || !application.email || !application.full_name || !application.phone || !application.sub_community || !application.unit_number) redirect("/dashboard/applications?error=not_available");
 
   let approvedSubCommunity = application.sub_community;
   let approvedUnitNumber = application.unit_number;
